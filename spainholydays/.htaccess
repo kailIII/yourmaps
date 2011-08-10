@@ -1,0 +1,5 @@
+Options +FollowSymLinks -Indexes
+RewriteEngine on
+RewriteRule testpage\.html http://www.google.com [R]
+#RewriteRule ^towns/([A-Za-z0-9-]+)/?$ php_scripts/towns.php?municipio=$1 [L]
+RewriteRule ^towns/(.*+)$ php_scripts/towns.php?municipio=$1 [L]
