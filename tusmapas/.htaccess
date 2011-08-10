@@ -1,0 +1,3 @@
+Options +FollowSymLinks -Indexes
+RewriteEngine on
+#RewriteRule ^towns/(.*+)$ php_scripts/towns.php?municipio=$1 [L]

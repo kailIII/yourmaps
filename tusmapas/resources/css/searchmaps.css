@@ -1,0 +1,187 @@
+@CHARSET "UTF-8";
+
+body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,form,fieldset,input,textarea,p,blockquote,th,td{
+	padding:0;
+	margin:0;
+}
+
+body{
+	font-family:Arial,Helvetica,sans-serif;
+	font-size:75%;
+	/**color:#515151;*/
+	line-height:1.4;
+	/**background:#E3F1FE url(http://1.images.mnstatic.com/sprites/sp_bgext_mnes.png) repeat-x scroll left -638px;*/
+}
+
+.mdshadow{
+	display:block;
+	width:975px;
+	height:180px;
+	position:absolute;
+	top:100px;
+	left:0;
+	background:transparent url(http://localhost/tusmapas/resources/images/bgdestinations.png) -1px 3px no-repeat;
+}
+
+.modular{
+	float:left;
+	width:904px;
+	padding:22px 30px;
+	margin:15px 0;
+	background-color:#fff;
+	position:relative;
+	z-index:1;
+}
+
+.search_destination{
+	float:left;
+	margin:1.5em 0 0;
+	clear:both;
+	width:568px;
+}
+.search_destination label{
+	color:#333;
+	display:block;
+	font-size:2.1em;
+	font-weight:bold;
+	margin:0 0 3px;
+}
+.search_destination input.field{
+	color:#333;
+	background:transparent url(http://localhost/tusmapas/resources/images/sp_h_mnes.png) repeat-x scroll 0 -469px;
+	color:#333;
+	font-size:18px;
+	height:22px;
+	padding:5px;
+	width:423px;
+	margin:0 10px 0 0;
+	float:left;
+}
+
+.search_destination input.btn {
+	float: left;
+}
+#searcher input.btn, .search_destination input.btn {
+	border: 0 none;
+	color: white;
+	cursor: pointer;
+	font-family: Arial,Helvetica,sans-serif;
+}
+
+.unit116 {
+	background: transparent url(http://localhost/tusmapas/resources/images/sp_h_mnes.png) no-repeat 0 -61px;
+	width: 116px;
+	height: 32px;
+	font-size: 16px;
+	font-weight: bold;
+}
+
+a.inverse{
+	text-decoration:none;
+}
+
+a.inverse:hover{
+	text-decoration:underline;
+}
+
+.auto_border_jstwo{
+	border:1px solid #8EACC4;
+}
+
+
+/* trail list */
+div.trails {
+	float: right;
+	width: 728px;
+	padding-bottom: 40px;
+}
+div.trails h2 {
+	font-weight: bold;
+	font-size: 110%;
+	margin-bottom: .5em;
+}
+
+div.trails ul.trail-list li {
+	position: relative;
+	min-height: 95px;
+	border-bottom: 1px dashed #e4e4e4;
+}
+div.trails ul.trail-list li.ad {
+	min-height: 0;
+}
+div.trails ul.trail-list li.ad {
+	display: block;
+}
+div.trails ul.trail-list li img.pictogram,
+div.trails ul.trail-list li div.photos {
+	position: absolute;
+	top: 10px;
+}
+div.trails ul.trail-list li img.pictogram {
+	left: 0;
+	display: block;
+	border: 1px solid #e4e4e4;
+}
+div.trails ul.trail-list li div.photos {
+	right: 0;
+}
+div.trails ul.trail-list li div.photos a {
+	margin-right: 4px;
+	display: block;
+	float: right;
+	overflow: hidden;
+	width: 75px;
+	width: 75px;
+}
+
+div.trails ul.trail-list li div.info {
+	margin: 0 250px 0 60px;
+	padding: 7px 0;
+}
+div.trails ul.trail-list li div.info h3 {
+	margin-bottom: .3em;	
+	font-weight: bold;
+}
+
+div.trails ul.trail-list li div.info p.description {
+	color: #555;
+	margin-bottom: .3em;
+	font-size: 90%;
+}
+div.trails ul.trail-list li div.info p.meta {
+	color: #777;
+	margin-bottom: 3px
+}
+div.trails ul.trail-list li div.info p.meta strong {
+	color: #333;
+}
+div.trails ul.trail-list li div.info p.meta span.level5 {
+	color: #000;
+}
+div.trails ul.trail-list li div.info p.meta span.level4 {
+	color: #000;
+}
+div.trails ul.trail-list li div.info p.meta span.level3 {
+	color: #af5454;
+}
+div.trails ul.trail-list li div.info p.meta span.level2 {
+	color: #3A4D9F;
+}
+div.trails ul.trail-list li div.info p.meta span.level1 {
+	color: #568f56;
+}
+
+/* clearfix */
+.clearfix:after {
+    content: " "; 
+    display: block; 
+    height: 0; 
+    clear: both; 
+    visibility: hidden;
+}
+.clearfix {display: inline-block;}
+/* Hides from IE-mac \*/
+* html .clearfix {height: 1%;}
+.clearfix {display: block;}
+/* End hide from IE-mac */
+

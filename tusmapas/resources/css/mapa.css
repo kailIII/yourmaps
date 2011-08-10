@@ -1,0 +1,235 @@
+/**
+OJO!
+Las URL de un CSS tienen que ser absolutas: esto nos puede dar problemas al subir a un hosting
+la web
+*/
+
+
+a.tag1{
+	font-size: 0.5 em;
+	text-decoration:none;
+}
+a.tag1:hover{text-decoration:underline;}
+
+a.tag2{
+	font-size: 1em;
+	text-decoration:none;
+	}
+a.tag3{
+	font-size: 1.25em;
+	text-decoration:none;
+	}
+a.tag4{
+	font-size: 1.5em;
+	text-decoration:none;
+}
+a.tag5{
+	font-size: 1.75em;
+	text-decoration:none;
+	}
+a.tag6{
+	font-size: 2em;
+	text-decoration:none;
+	}
+a.tag7{
+	font-size: 3em;
+	text-decoration:none;
+	}
+	
+a.tag1:hover{text-decoration:underline;}
+a.tag2:hover{text-decoration:underline;}
+a.tag3:hover{text-decoration:underline;}
+a.tag4:hover{text-decoration:underline;}
+a.tag5:hover{text-decoration:underline;}
+a.tag6:hover{text-decoration:underline;}
+a.tag7:hover{text-decoration:underline;}
+	
+* { padding:0; margin:0; outline: 0;}
+
+html, body {
+height:100%;
+font-family: Verdana, arial, sans-serif;
+font-size: 1em;
+outline: 0;
+}
+
+@CHARSET "UTF-8";
+
+body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,form,fieldset,input,textarea,p,blockquote,th,td{
+	padding:0;
+	margin:0;
+}
+
+body{
+	font-family:Arial,Helvetica,sans-serif;
+	font-size:75%;
+	line-height:1.4;
+	/**background:#E3F1FE url(http://1.images.mnstatic.com/sprites/sp_bgext_mnes.png) repeat-x scroll left -638px;*/
+}
+
+a.inverse{text-decoration:none;}
+a.inverse:hover{text-decoration:underline;}
+
+#superior {
+	padding:.75em;
+	margin-bottom:100px;
+}
+
+#contenedor { min-height:100%;
+height: auto!important;
+height:100%;
+}
+
+#cabecera {
+height: 60px;
+font-size:1.5em;
+background-color: #399;
+color: #fff;
+text-align: left;
+margin:10px 0 0;
+}
+
+h2.cabecera{
+	font-size:0.75em;
+}
+
+img.cabecera{
+padding:0;
+text-align:left;
+float:left;
+margin-left:2px;
+margin-right:2px;
+	
+}
+#postcabecera {
+height: 1.25em;
+text-align: left;
+}
+
+#contenido {
+	padding: 1em;
+}
+
+div.cuerpo {
+	display:block;
+	width:980px;
+	margin:0 auto;
+}
+
+#titulo {
+	display:block;
+	font-size:1.8em;
+	width:99%;
+	padding:2px;
+	font-weight:bold;
+	border-bottom:2px solid #fff;
+	margin: 0 auto;
+}
+
+/**#maximizar_mapa, #minimizar_mapa{display:block;z-index:1000;width:34px;height:20px;position:absolute;top:5px;right:6px;}*/
+a.maximizar_mapa {
+	background-image:url("http://localhost/tusmapas/resources/images/btn_maximizar_mapa.png");
+	display:block;
+	z-index:1000;
+	width:34px;
+	height:20px;
+	background-color:transparent;
+	background-repeat:no-repeat;
+	background-position:top left;
+	cursor:pointer;
+	position:relative;
+	top:22px;
+	left:540px;
+	}
+a.minimizar_mapa {
+	background-image:url("http://localhost/tusmapas/resources/images/btn_minimizar_mapa.png");
+	display:block;
+	z-index:1000;
+	width:34px;
+	height:20px;
+	background-color:transparent;
+	background-repeat:no-repeat;
+	background-position:top left;
+	position:relative;
+	top:22px;
+	left:540px;
+	cursor:pointer;
+}
+
+a.maximizar_mapa:hover, a.minimizar_mapa:hover{background-position:bottom left;}
+
+
+#map_social{
+	margin: 5px 5px 5px 5px;
+}
+
+#mapea{ 
+	background-color: transparent; 
+	margin-left: 320px;
+	margin-bottom:25px;
+	top: 125px; 
+	visibility: visible
+	width: 512px;
+	height: 320px;        
+}
+
+
+#map-container {
+    width: 575px;
+    height: 395px;
+    border: 1px solid #ccc;
+   /* visible:true;*/
+}
+
+
+#map {
+    width: 512px;
+    height: 320px;
+    top: 5px;
+    left: 5px;
+    border: 1px solid darkblue;
+}
+
+
+
+
+
+#antepie {
+width: 100%;
+font-family: Arial,Helvetica,sans-serif;
+clear: both;
+background: #749F00  left top;
+margin: 10px 0 0;
+float: left;
+}
+
+
+#pie {
+width: 100%;
+height: 25px;
+font-size:0.75em;
+background-color: #399;
+color: #fff;
+text-align: center;
+position: fixed;
+bottom: 0;
+}
+
+
+#resultadosBusqueda{
+height: 45px;
+font-size:1.25em;
+background-color: white;
+color: black;
+text-align: left
+            
+padding-top:25px;
+padding-bottom:5px;
+padding-right:5px;
+padding-left:5px;
+
+margin-top:10px;
+margin-bottom:10px;
+margin-right:5px;
+margin-left:5px;
+}
