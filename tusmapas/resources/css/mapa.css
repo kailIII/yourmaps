@@ -1,6 +1,7 @@
 /**
 OJO!
-Las URL de un CSS tienen que ser absolutas: esto nos puede dar problemas al subir a un hosting
+Las URL de un CSS se referencian a la ubicacion del CSS
+(no a la ubicacion de la pagina contenedora)
 la web
 */
 
@@ -75,36 +76,50 @@ a.inverse:hover{text-decoration:underline;}
 	margin-bottom:100px;
 }
 
-#contenedor { min-height:100%;
-height: auto!important;
-height:100%;
+#contenedor { 
+	min-height:100%;
+	height: auto!important;
+	height:100%;
 }
 
 #cabecera {
-height: 60px;
-font-size:1.5em;
-background-color: #399;
-color: #fff;
-text-align: left;
-margin:10px 0 0;
+	/*height: 60px;
+	font-size:1.5em;
+	text-align: left;
+	margin:10px 0 0;*/
+	background-color: #399;
+	color:white;
+}
+
+h1.cabecera {
+	color:white;
 }
 
 h2.cabecera{
 	font-size:0.75em;
+	color: #fff;
 }
 
 img.cabecera{
-padding:0;
-text-align:left;
-float:left;
-margin-left:2px;
-margin-right:2px;
-	
+	padding:0;
+	text-align:left;
+	float:left;
+	margin-left:2px;
+	margin-right:2px;	
 }
+
 #postcabecera {
-height: 1.25em;
-text-align: left;
+	height: 1.75em;
+	margin:5px 0 0;
+	text-align: left;
 }
+
+.menu-header {
+	padding-top:12px;
+	margin-top:9px;
+	float:left
+}
+
 
 #contenido {
 	padding: 1em;
@@ -160,7 +175,7 @@ a.maximizar_mapa:hover, a.minimizar_mapa:hover{background-position:bottom left;}
 
 
 #map_social{
-	margin: 5px 5px 5px 5px;
+	margin: p5px 5px 5px 5px;
 }
 
 #mapea{ 
@@ -190,46 +205,86 @@ a.maximizar_mapa:hover, a.minimizar_mapa:hover{background-position:bottom left;}
     border: 1px solid darkblue;
 }
 
-
-
-
-
-#antepie {
-width: 100%;
-font-family: Arial,Helvetica,sans-serif;
-clear: both;
-background: #749F00  left top;
-margin: 10px 0 0;
+.antepie {
+	width: 100%;
+	font-family: Arial,Helvetica,sans-serif;
+	clear: both;
+	background: #749F00  left top;
+	margin: 10px 0 0;
 float: left;
 }
 
 
 #pie {
-width: 100%;
-height: 25px;
-font-size:0.75em;
-background-color: #399;
-color: #fff;
-text-align: center;
-position: fixed;
+	width: 100%;
+	height: 25px;
+	font-size:0.75em;
+	background-color: #399;
+	color: #fff;
+	text-align: center;
+	position: fixed;
 bottom: 0;
 }
 
 
-#resultadosBusqueda{
-height: 45px;
-font-size:1.25em;
-background-color: white;
-color: black;
-text-align: left
-            
-padding-top:25px;
-padding-bottom:5px;
-padding-right:5px;
-padding-left:5px;
-
-margin-top:10px;
-margin-bottom:10px;
-margin-right:5px;
-margin-left:5px;
+#search-result-message{
+	background-color: white;
+	color: black;
+	text-align: left;
+	padding:2px 2px 2px 2px;     
 }
+
+#search-results{
+	list-style-type:none;
+	padding: 0px;
+	margin: 0px;
+}
+
+
+#search-box { 
+	background-color: #ddd;
+	float:left ;  
+	padding: 15px;
+	margin: 5px;
+	z-index:1
+}
+
+.search_destination{
+	float:left;
+	margin:1.5em 0 0;
+	clear:both;
+	/*width:568px;*/
+}
+.search_destination label{
+	color:#333;
+	display:block;
+	font-size:2.1em;
+	font-weight:bold;
+	margin:0 0 3px;
+}
+.search_destination input.field{
+	color:#333;
+	font-size:18px;
+	height:22px;
+	padding:5px;
+	width:285px;
+	margin:0 10px 0 0;
+	float:left;
+}
+
+.auto_border_jstwo{
+	border:1px solid #8EACC4;
+}
+
+.search_destination input.btn {
+	float: left;
+}
+
+.search_button {
+	background: transparent url(http://localhost/tusmapas/resources/images/sp_h_mnes.png) no-repeat 0 -61px;
+	width: 116px;
+	height: 32px;
+	font-size: 16px;
+	font-weight: bold;
+}
+

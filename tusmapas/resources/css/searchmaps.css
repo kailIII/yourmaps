@@ -33,34 +33,9 @@ body{
 	z-index:1;
 }
 
-.search_destination{
-	float:left;
-	margin:1.5em 0 0;
-	clear:both;
-	width:568px;
-}
-.search_destination label{
-	color:#333;
-	display:block;
-	font-size:2.1em;
-	font-weight:bold;
-	margin:0 0 3px;
-}
-.search_destination input.field{
-	color:#333;
-	background:transparent url(http://localhost/tusmapas/resources/images/sp_h_mnes.png) repeat-x scroll 0 -469px;
-	color:#333;
-	font-size:18px;
-	height:22px;
-	padding:5px;
-	width:423px;
-	margin:0 10px 0 0;
-	float:left;
-}
 
-.search_destination input.btn {
-	float: left;
-}
+
+
 #searcher input.btn, .search_destination input.btn {
 	border: 0 none;
 	color: white;
@@ -68,13 +43,7 @@ body{
 	font-family: Arial,Helvetica,sans-serif;
 }
 
-.unit116 {
-	background: transparent url(http://localhost/tusmapas/resources/images/sp_h_mnes.png) no-repeat 0 -61px;
-	width: 116px;
-	height: 32px;
-	font-size: 16px;
-	font-weight: bold;
-}
+
 
 a.inverse{
 	text-decoration:none;
@@ -84,9 +53,7 @@ a.inverse:hover{
 	text-decoration:underline;
 }
 
-.auto_border_jstwo{
-	border:1px solid #8EACC4;
-}
+
 
 
 /* trail list */
