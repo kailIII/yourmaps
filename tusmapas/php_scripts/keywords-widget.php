@@ -17,7 +17,7 @@
 		}
 
 ?>
-		<div id='antepie'>
+		<div class='antepie'>
 		Busca tus mapas por palabras clave:
 <?
 		//primera pasada, contamos cuantas ocurrencias tienen las 20 primeras palabras

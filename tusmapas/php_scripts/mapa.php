@@ -1,10 +1,6 @@
 <?php
 
-//TODO HAY SERVICIOS QUE NO TIENEN CAPA BASE. PONER SIEMPRE UNA ORTO A NIVEL GLOBAL 
-//(BUSCAR UN BUEN WMS BASE)
-
-//OTROS DOS PROBLEMAS SON: TEXTO DE URL-AMIGABLE PARA KEYWORDS,
-// Y SRS CUANDO NO ESTÉ EL LATITUD LONGITUD (POR EJEMPLO EN CHG)
+// FIXME: Cuando el srs es 23030, no valen ni las capas base ni epsg:4326
 
 /*
  * Pasos:
@@ -46,6 +42,9 @@ try {
 			echo "<head>";
 ?>
 			<link rel="stylesheet" type="text/css" href="../resources/css/mapa.css" />
+			<script type="text/javascript" src="https://apis.google.com/js/plusone.js">
+  				{lang: 'es'}
+			</script>
 <? 
 			echo "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">";
 			
@@ -77,11 +76,8 @@ try {
 			//echo "<link rel=\"shortcut icon\" href=\"http://localhost/spainholydays/favicon.ico\">";
 			echo "<link rel=\"copyright\" href=\"http://www.gnu.org/copyleft/fdl.html\">";
 
-			echo "<title>".$serviceTitle ." - TusMapas: ciudades y mapas de todo el mundo </title>";
-			
+			echo "<title>".$serviceTitle ." - Looking for maps: cities and maps of the world </title>";
 			include("expandable_js.php");//FIXME mejor un popup modal
-			
-			
 			//javascript generador del mapa
 			if($api == "ide-e")
 				include("./map_engines/idee-api.php");
@@ -95,20 +91,12 @@ try {
 		</head>
 		
 		<body onload="addFrame('map-container','<?= $url?>','<?= $serviceTitle?>', <?= $height?>,<?= $width?> ,<?= $xmin?> ,<?= $ymin?> ,<?= $xmax?> ,<?= $ymax?>,'<?= $layerNames?>','<?= $layerTitles?>','<?= $crs?>',<?= $isQueryable?>,'<?= $wmsVersion?>' )"> 
+		
+			<?php include("menu-header.php")?>
+		
 		<div id="contenedor">
-			
-			<div id="postcabecera">
-			<a href="#" class="inverse">Registrate</a>&nbsp;<a href="#" class="inverse">Entrar</a>&nbsp;<a href="#" class="inverse">Sobre "Tus Mapas"</a>&nbsp;&nbsp;&nbsp;<a href="#" class="inverse">link1</a>
-			</div>
-			
-			<div id="cabecera">
-				<!-- <a href="."><img class="cabecera" src="../resources/images/logob1-round.png"/></a> -->
-				<a ><img class ="cabecera" src="../resources/images/lupa-map.-64x64.png"/></a>
-				<h4>Tus Mapas:</h4> <h6>mucho m&aacute;s que Google Maps con la cartograf&iacute;a de la web 2.0</h6>
-			</div>
-			
 			<div class="inverse">
-			<h3>Productor: <?=$productor?> - Mapa:  <?=$serviceTitle?></h3><br><br>
+				<h3>Productor: <?=$productor?> - Mapa:  <?=$serviceTitle?></h3><br><br>
 			</div>
 <?
 			$strlen = strlen($serviceAbstract);
@@ -124,21 +112,25 @@ try {
 			<br/>
 			<div id="contenido">
 				<div id="cuerpo" class="cuerpo"><!-- este div mete la indentacion -->
-				<a href="mapamaximizado.php" class="maximizar_mapa" title="Pantalla completa" > </a>
-					<h2 class="titulo" style="font-size: 15px;">
-						<div style="width:550px">
-						<!-- word-wrap: break-word;white-space: pre; white-space: -moz-pre-wrap; white-space: pre-wrap; -->
-							 <em style="width:30px;font-size: 1.2em; font-style: normal; color: rgb(51, 102, 153); font-weight: normal;">
-							 	<?=$serviceTitle?>
-							 </em>
+						<a href="mapamaximizado.php" class="maximizar_mapa" title="Pantalla completa" > </a>
+						
+						<h2 class="titulo" style="font-size: 15px;">
+							<div style="width:550px">
+							<!-- word-wrap: break-word;white-space: pre; white-space: -moz-pre-wrap; white-space: pre-wrap; -->
+								 <em style="width:30px;font-size: 1.2em; font-style: normal; color: rgb(51, 102, 153); font-weight: normal;">
+								 	<?=$serviceTitle?>
+								 </em>
+							</div>
+						</h2>
+					
+						<div id="map-container">
 						</div>
-					</h2>
-					
-					<div id="map-container"></div>
-					
-					<div class="map_social">
+							
 						<!-- AddThis Button BEGIN -->
-						<div class="addthis_toolbox addthis_default_style ">
+						<div class="addthis_toolbox addthis_default_style " style="margin:7px 0px 7px 0px">
+							<a href="#descargar kml" title="#descargar kml">
+								<img src="../resources/images/google_earth.png"/ alt="icono google earth"/>
+							</a>
 							<a class="addthis_button_preferred_1"></a>
 							<a class="addthis_button_preferred_2"></a>
 							<a class="addthis_button_preferred_3"></a>
@@ -148,13 +140,10 @@ try {
 						</div>
 						<script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=ra-4e4193c01ebec8a5"></script>
 						<!-- AddThis Button END -->
-					</div>
-			
-			</div><!-- contenido -->
-				</div><!-- cuerpo -->
-			</div>
-			 
-			
+						
+					</div><!-- cuerpo -->
+				</div><!-- contenido -->
+			</div><!--  contenedor -->
 		<?
 		/*
 		 Consulta para meter palabras clave de este servicio: 
@@ -163,12 +152,15 @@ try {
 			include("keywords-widget.php");
 			include("producer-widget.php");
 			include("tailer-widget.php");
+		
 		}else{
 			
 			echo "No se ha podido encontrar el mapa ".$requiredMap;
 		}
 		echo "</body>";	
+		
 }catch(PDOException $e){
 	echo $e->getMessage();
 }
 $dbh = null;
+?>
