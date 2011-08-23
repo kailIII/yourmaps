@@ -32,26 +32,70 @@ try {
 		$dbh = new PDO("mysql:host=$hostname;dbname=tusmapas",
 		 $username, $password, 
 		 array(PDO::ATTR_PERSISTENT => true));
+		 
 		$dbh->query("SET CHARACTER SET utf8");
 		$statement = $dbh->query("select * from WMS_SERVICES where friendly_url = '".$requiredMap ."'");
 		$statement->execute();
 		if($row = $statement->fetch()){
-		
-			echo "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">";
-			echo "<html dir=\"ltr\" xml:lang=\"es\" xmlns=\"http://www.w3.org/1999/xhtml\">";
-			echo "<head>";
 ?>
+		<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+	
+		<html dir="ltr" xml:lang="es" xmlns="http://www.w3.org/1999/xhtml">
+		<head>
+			<link rel="stylesheet" href="../resources/css/blueprint/screen.css" type="text/css" media="screen, projection">
+  			<link rel="stylesheet" href="../resources/css/blueprint/print.css" type="text/css" media="print"> 
+	  		<!--[if lt IE 8]>
+	    		<link rel="stylesheet" href="../resources/css/blueprint/ie.css" type="text/css" media="screen, projection">
+	  		<![endif]-->
+		
 			<link rel="stylesheet" type="text/css" href="../resources/css/mapa.css" />
-			<script type="text/javascript" src="https://apis.google.com/js/plusone.js">
-  				{lang: 'es'}
-			</script>
-<? 
-			echo "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">";
+			<link rel="stylesheet" type="text/css" href="../resources/css/searchmaps.css" />
 			
+			<link rel="stylesheet" type="text/css" href="../resources/css/jquery.autocomplete.css" />
+			
+			<link href="../resources/css/jquery-ui/ui-lightness/jquery-ui-1.8.16.custom.css" rel="stylesheet" type="text/css"/>
+			
+		
+			<script type="text/javascript" language="javascript" src="../resources/js/jquery-1.6.2.min.js">
+			</script>
+			
+			<script type="text/javascript" language="javascript" src="../resources/js/jquery-ui-1.8.16.custom.min.js">
+			</script>	
+		
+			<script type="text/javascript" language="javascript" src="../resources/js/jquery.autocomplete.js">
+			</script>
+			
+<!--			  <script src='../resources/js/jquery.expander.js' type='text/javascript'></script>-->
+   			
+<!--			<script type="text/javascript">-->
+<!--				$(document).ready(function() {-->
+<!--						 $('div.expandable p').expander({-->
+<!--							    slicePoint:    220,  -->
+<!--							    expandText:  'Leer más...', -->
+<!--							    collapseTimer:   0, -->
+<!--							    userCollapseText: '[^]'  // default is '[collapse expanded text]'-->
+<!--						  });-->
+<!--				  });-->
+<!--			</script>-->
+			
+  					
+   			<script src='../resources/js/scripts.js' type='text/javascript'>
+   			</script>
+   			
+   			<script type="text/javascript" src="../resources/js/jquery.corner.js?v2.11">
+			</script>
+		
+		
+			<script type="text/javascript" src="https://apis.google.com/js/plusone.js">
+		  		{lang: 'es'};
+			</script>
+	
+			
+			<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		
+<? 	
 			$url = $row['service_url'];
 			
-			//FIXME Las xmin,ymin,xmax,ymax que estamos calculando no dan buenos resultados
-			//suelen ser niveles de zoom demasiado grandes.
 			$xmin = $row['xmin'];
 			$ymin = $row['ymin'];
 			$xmax = $row['xmax'];
@@ -77,7 +121,9 @@ try {
 			echo "<link rel=\"copyright\" href=\"http://www.gnu.org/copyleft/fdl.html\">";
 
 			echo "<title>".$serviceTitle ." - Looking for maps: cities and maps of the world </title>";
-			include("expandable_js.php");//FIXME mejor un popup modal
+			
+			
+ 
 			//javascript generador del mapa
 			if($api == "ide-e")
 				include("./map_engines/idee-api.php");
@@ -93,57 +139,109 @@ try {
 		<body onload="addFrame('map-container','<?= $url?>','<?= $serviceTitle?>', <?= $height?>,<?= $width?> ,<?= $xmin?> ,<?= $ymin?> ,<?= $xmax?> ,<?= $ymax?>,'<?= $layerNames?>','<?= $layerTitles?>','<?= $crs?>',<?= $isQueryable?>,'<?= $wmsVersion?>' )"> 
 		
 			<?php include("menu-header.php")?>
-		
-		<div id="contenedor">
-			<div class="inverse">
-				<h3>Productor: <?=$productor?> - Mapa:  <?=$serviceTitle?></h3><br><br>
-			</div>
+			
+			<div class="container"> 
+						<div class="span-15"><!-- este div mete la indentacion -->
+								<a href="mapamaximizado.php" class="maximizar_mapa" title="Pantalla completa" > </a>
+								
+								<h2 class="titulo" style="font-size: 15px;">
+									<div style="width:550px">
+									<!-- word-wrap: break-word;white-space: pre; white-space: -moz-pre-wrap; white-space: pre-wrap; -->
+										 <em style="width:30px;font-size: 1.2em; font-style: normal; color: rgb(51, 102, 153); font-weight: normal;">
+										 	<?=$serviceTitle?>
+										 </em>
+									</div>
+								</h2>
+							
+								<div id="map-container">
+								</div>
+									
+								<!-- AddThis Button BEGIN -->
+								<div class="addthis_toolbox addthis_default_style " style="margin:7px 0px 7px 0px">
+									<a href="#descargar kml" title="#descargar kml" style="padding-left:4px;margin-left:3px">
+										<img src="../resources/images/google_earth_15x15.png" />
+										Ver en Google Earth
+									</a>
+									<a class="addthis_button_preferred_1"></a>
+									<a class="addthis_button_preferred_2"></a>
+									<a class="addthis_button_preferred_3"></a>
+									<a class="addthis_button_preferred_4"></a>
+									<a class="addthis_button_compact"></a>
+									<a class="addthis_counter addthis_bubble_style"></a>
+								</div>
+								<script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=ra-4e4193c01ebec8a5"></script>
+								<!-- AddThis Button END -->
+								
+							</div><!-- cuerpo -->
+							
+							
+									
+							<div class="span-8 last">
+								<h4>Publicador: <?=$productor?></h4>
+								<hr class="space"/>
+								<h4>Mapa:  <?=$serviceTitle?></h4>
+								<hr class="space"/>
+								
+								
 <?
 			$strlen = strlen($serviceAbstract);
-			if($strlen > 650){
-				echo "<div class='expandable' style='overflow:hidden; z-index: 3000'>";
+			if($strlen > 350){
+//				echo "<div class='expandable' style='overflow:hidden; z-index: 3000'>";
+//				echo "<p>";
+//				echo $serviceAbstract;
+//				echo "</p>";
+//				echo "</div>";
+
+			
+				
 				echo "<p>";
-				echo $serviceAbstract;
+				echo substr($serviceAbstract, 0, 250)."..."."";
+				
+				echo "<div id='dialog' title='".$serviceTitle."'style='display:none'>";
+				echo "".$serviceAbstract;			
+				echo "</div>";				
+				
+				echo "<a <a href='#' id='dialog_link'>Ver resto</a>";
 				echo "</p>";
-				echo "</div>";
-			}else 
+				
+				
+			}else{ 
 				echo $serviceAbstract;	
+			}
 ?>
-			<br/>
-			<div id="contenido">
-				<div id="cuerpo" class="cuerpo"><!-- este div mete la indentacion -->
-						<a href="mapamaximizado.php" class="maximizar_mapa" title="Pantalla completa" > </a>
-						
-						<h2 class="titulo" style="font-size: 15px;">
-							<div style="width:550px">
-							<!-- word-wrap: break-word;white-space: pre; white-space: -moz-pre-wrap; white-space: pre-wrap; -->
-								 <em style="width:30px;font-size: 1.2em; font-style: normal; color: rgb(51, 102, 153); font-weight: normal;">
-								 	<?=$serviceTitle?>
-								 </em>
-							</div>
-						</h2>
-					
-						<div id="map-container">
-						</div>
-							
-						<!-- AddThis Button BEGIN -->
-						<div class="addthis_toolbox addthis_default_style " style="margin:7px 0px 7px 0px">
-							<a href="#descargar kml" title="#descargar kml">
-								<img src="../resources/images/google_earth.png"/ alt="icono google earth"/>
-							</a>
-							<a class="addthis_button_preferred_1"></a>
-							<a class="addthis_button_preferred_2"></a>
-							<a class="addthis_button_preferred_3"></a>
-							<a class="addthis_button_preferred_4"></a>
-							<a class="addthis_button_compact"></a>
-							<a class="addthis_counter addthis_bubble_style"></a>
-						</div>
-						<script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=ra-4e4193c01ebec8a5"></script>
-						<!-- AddThis Button END -->
-						
-					</div><!-- cuerpo -->
-				</div><!-- contenido -->
-			</div><!--  contenedor -->
+						</div><!-- span-4 -->
+		</div><!-- container -->
+		
+		<script type="text/javascript">
+			$(function(){
+	
+				var options = {
+						autoOpen: false,
+						width: 600,
+						buttons: {
+							"Ok": function() { 
+								$(this).dialog("close"); 
+							}
+						}
+				};
+				$("#dialog").dialog(options);
+				
+
+				// Dialog Link
+				$('#dialog_link').click(function(){
+					$('#dialog').dialog('open');
+					return false;
+				});
+				
+				//hover states on the static widgets
+				$('#dialog_link, ul#icons li').hover(
+					function() { $(this).addClass('ui-state-hover'); }, 
+					function() { $(this).removeClass('ui-state-hover'); }
+				);
+				
+			});
+		</script>
+		
 		<?
 		/*
 		 Consulta para meter palabras clave de este servicio: 
@@ -157,10 +255,11 @@ try {
 			
 			echo "No se ha podido encontrar el mapa ".$requiredMap;
 		}
-		echo "</body>";	
 		
 }catch(PDOException $e){
 	echo $e->getMessage();
 }
 $dbh = null;
 ?>
+	</body>
+</html>

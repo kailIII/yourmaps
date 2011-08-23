@@ -29,6 +29,18 @@ $keyword = $_GET['keywords'];
 		<script type="text/javascript" src="https://apis.google.com/js/plusone.js">
 	  		{lang: 'es'}
 		</script>
+		
+		<script type="text/javascript" language="javascript" src="../resources/js/jquery-1.6.1.js">
+		</script>
+		
+		<script type="text/javascript" src="../resources/js/jquery.corner.js?v2.11">
+		</script>
+		
+		<script>
+	 	 $(document).ready(function(){
+			$(".box").corner();
+		  });
+	    </script>	
 	
 <? 
 	echo "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">";
@@ -131,6 +143,7 @@ $keyword = $_GET['keywords'];
 		       echo $links["all"];
 			}else{
 				echo "<div class='highlight large'>No se han encontrado resultados para el término buscado</div>";
+				include("adsense.php");
 			}
 		 ?>   	
 		      </div><!-- span-20 -->

@@ -25,7 +25,7 @@
   		<!--[if lt IE 8]>
     		<link rel="stylesheet" href="../resources/css/blueprint/ie.css" type="text/css" media="screen, projection">
   		<![endif]-->
-		
+<!--		<link rel="stylesheet" href="../resources/css/blueprint/plugins/screen.css" type="text/css" media="print"> -->
 		
 		<link rel="stylesheet" type="text/css" href="../resources/css/mapa.css" />
 		<link rel="stylesheet" type="text/css" href="../resources/css/searchmaps.css" />
@@ -49,7 +49,13 @@
 	 	 $(document).ready(function(){
 			$("#keywords_textfield").autocomplete("http://localhost/tusmapas/php_scripts/keywords-search-jquery.php");
 			$("#search-box").corner();
+			$("#introduction").corner();
 		  });
+
+		  function fillForm(keyword){
+			  $("#keywords_textfield").val(keyword);
+
+		  }
 
 		  function submitForm(){
 			  document.forms['home_search_form'].submit();
@@ -110,10 +116,30 @@
 		 			</form>
 				</div>
 				
-				<div class="span-12 preppend-1 last">
-					<h1>
-						Bienvenido a LookingForMaps.com
-					</h1>
+				<div class="span-10 preppend-3 last" id="introduction">
+					<h2 class="left">
+						¿Qué es <em>lookingformaps.com</em>?
+					</h2>
+					<p style="text-shadow: 1px 1px 2px #90BADD;">
+					<strong>lookingformaps.com</strong> es una aplicación en internet para buscar mapas de la misma forma que buscas con Google.
+					</p>
+					<hr class="space"></hr>
+					<p >
+					¿Sabías que en la web hay miles de mapas sobre cualquier temática, 
+					además de los mapas de Google? 
+					<a href="http://www.openstreetmap.org">OpenStreetMap</a>, 
+					<a href="http://www.inspire-geoportal.eu/index.cfm/pageid/341">Unión Europea</a>,
+					<a href="http://www.idee.es/clientesIGN/wmsGenericClient/index.html?lang=ES">Estados</a>, 
+					<a href="http://www.ideandalucia.es/IDEAvisor/proyectosig/mapviewer.jsp">Comunidades Autónomas</a> y 
+					<a href="http://es.wikiloc.com/wikiloc/home.do">voluntarios</a> publican gratuítamente sus mapas
+					en Internet.
+					<hr class="space"/>
+					Solo tienes que introducir en nuestro buscador términos como 
+					<a href="javascript:fillForm('playas');">playas</a>, 
+					<a href="javascript:fillForm('montes');">montes</a>, 
+					<a href="javascript:fillForm('rio');">rio</a>, etc.
+					para localizarlos.
+					</p>
 				</div>
 				
 			</div><!-- container -->
