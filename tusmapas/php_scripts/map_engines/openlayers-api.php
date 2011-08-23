@@ -3,8 +3,7 @@
 <link
 	rel="stylesheet" type="text/css" href="../resources/css/mapa.css" />
 
-<link
-	rel="stylesheet"
+<link rel="stylesheet"
 	href="http://openlayers.org/api/theme/default/style.css"
 	type="text/css" />
 
@@ -306,7 +305,43 @@
 				var bounds = new OpenLayers.Bounds(newxmin, newymin, newxmax, newymax);
 				bounds.transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
 
+				//TODO FIXME Crear un algoritmo que diga si dibujar el rectangulo del bbox o no
+				//en funcion del nivel de zoom.
+				
+	drawBoundingBox(map, bounds);
+
 		        map.zoomToExtent(bounds);
 
+			}
+
+			/**
+				Its useful draw bounding box over base map to ensure visibility for certain
+				levels of zoom
+			*/
+			function drawBoundingBox(map, boundingBox){
+
+			  var poly = boundingBox.toGeometry();
+
+			  var renderer = OpenLayers.Util.getParameters(window.location.href).renderer;
+	          renderer = (renderer) ? [renderer] : OpenLayers.Layer.Vector.prototype.renderers;
+
+		       
+              var layer_style = OpenLayers.Util.extend({}, OpenLayers.Feature.Vector.style['default']);
+              layer_style.fillOpacity = 0.2;
+              layer_style.graphicOpacity = 1;
+
+
+              var vectorLayer = new OpenLayers.Layer.Vector("Simple Geometry", {
+                style: layer_style,
+                renderers: renderer
+               });
+
+		           
+	            // create a polygon feature from a linear ring of points
+	           
+	            var polygonFeature = new OpenLayers.Feature.Vector(poly);
+		        map.addLayer(vectorLayer); 
+		        vectorLayer.addFeatures([polygonFeature]);
+						
 			}
 </script>
