@@ -62,7 +62,22 @@ $keyword = $_GET['keywords'];
 		
 		$dbh->query("SET CHARACTER SET utf8");
 		//FIXME Review the query, sometimes returns duplicates
-		$query = "select * from WMS_SERVICES, Wms_Keywords, Keywords_Services where Keywords_Services.fk_wms_id = WMS_SERVICES.pk_id and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Wms_Keywords.text like '%".$keyword."%'";
+		/**
+        there werent duplicates. the reason was that some keywords contanied others: 'andalucia' and 'fuentes de andalucia'. 
+        If a service have two keywords like that, it was listed two times.
+        
+        We must do a union with two queries:
+        
+        	select * from WMS_SERVICES, Wms_Keywords, Keywords_Services where Keywords_Services.fk_wms_id = WMS_SERVICES.pk_id and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Wms_Keywords.text like '%andalucia%' group by WMS_SERVICES.pk_id
+		 
+		and
+		
+			select * from KML_SERVICES,Wms_Keywords, Keywords_Services where Keywords_Services.fk_wms_id = KML_SERVICES.pk_gid and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Keywords_Services.service_type = 'KML' and Wms_Keywords.text like 'Sant Feliu De Guixols' group by PK_GID
+		 */
+		//$query = "select * from WMS_SERVICES, Wms_Keywords, Keywords_Services where Keywords_Services.fk_wms_id = WMS_SERVICES.pk_id and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Wms_Keywords.text like '%".$keyword."%'";
+		$query = "select WMS_SERVICES.pk_id, friendly_url, contact_organisation, service_url, service_title, service_abstract, xmin, ymin, xmax, ymax, Wms_Keywords.pk_id, Wms_Keywords.text, Wms_Keywords.friendly_url_text, Wms_Keywords.computed, Keywords_Services.fk_keyword_id, Keywords_Services.fk_wms_id, Keywords_Services.service_type from WMS_SERVICES, Wms_Keywords, Keywords_Services where Keywords_Services.fk_wms_id = WMS_SERVICES.pk_id and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Keywords_Services.service_type = 'WMS' and Wms_Keywords.text like '%".$keyword."%' group by WMS_SERVICES.PK_ID".
+		" union all select pk_gid, friendly_url, origen, url_origen, document_name, description, xmin, ymin, xmax, ymax, Wms_Keywords.pk_id, Wms_Keywords.text, Wms_Keywords.friendly_url_text, Wms_Keywords.computed, Keywords_Services.fk_keyword_id, Keywords_Services.fk_wms_id, Keywords_Services.service_type  from KML_SERVICES , Wms_Keywords, Keywords_Services where Keywords_Services.fk_wms_id = KML_SERVICES.pk_gid and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Keywords_Services.service_type = 'KML' and Wms_Keywords.text like '%".$keyword."%' group by PK_GID";
+		
 		$statement = $dbh->query($query);
 	?>	
 		</head>
@@ -93,7 +108,7 @@ $keyword = $_GET['keywords'];
 			$perPage = $params['perPage'];
 			
 			// 2nd query based on 1st with LIMIT – this will be displaying data per page
-			$stmt2 = $dbh->query($query. "LIMIT ".$from.", ".$to);
+			$stmt2 = $dbh->query($query. " LIMIT ".$from.", ".$to);
 			$stmt2->execute();
 	?>
 	
@@ -110,10 +125,15 @@ $keyword = $_GET['keywords'];
 			
 				while ($r = $stmt2->fetch()){
 					$title = $r['service_title'];
-					$friendlyUrl = $r['friendly_url'];
 					$serviceUrl = $r['service_url'];
 					$abstract = $r['service_abstract'];
-					$wmsVersion = $r['wms_version'];		
+					$friendlyUrl = $r['friendly_url'];	
+					
+					if($title = "KML document generated at Wikiloc - http://www.wikiloc.com"){
+						$title =  $friendlyUrl;
+						
+					}
+										
 		?>								
 						<li class="box">
 							<h3><a href="mapa.php?mapa=<?= $friendlyUrl?>" 
@@ -126,12 +146,32 @@ $keyword = $_GET['keywords'];
 							<p class="description">
 								<strong></strong> 
 		<?
+				if (strpos($friendlyUrl, "Wikiloc") === 0) {
+					/*
+					 Si el origen de datos es Wikiloc, no se puede reducir porque 
+					 la descripcion contiene html (y quedaría html mal formado)
+					 */
+					if(strpos($abstract, "<table") === 0){
+						$results = array();
+						//$pattern = "%<;table[^>;]*>;<;tr[^>;]*>;<;td[^>;]*>;<;a[^>;]*>;<;img[^>;]*>;<;/a>;<;/td>;<;/tr>;<;tr[^>;]*>;<;td[^>;]*>;(.*?)<;/td>;<;/tr>;.*?$%";
+						$pattern = "%<table[^>]*><tr[^>]*><td[^>]*><a[^>]*><img[^>]*></a></td></tr><tr[^>]*><td[^>]*>(.*?)</td></tr>.*?$%";
+						$numMatches = preg_match($pattern, $abstract, $results);
+						echo $results[1];
+					}else {
+						echo $abstract;
+					}
+					 
+				}else{
 					$strlen = strlen($abstract);
 					if($strlen > 180){
 						echo substr($abstract, 0, 180)."...";
 					}else{ 
 						echo $abstract;
 					}
+				}	 
+		
+		
+					
 		?>
 							</p>					
 				   		</li> 
