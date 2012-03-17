@@ -31,40 +31,38 @@
 		<link rel="stylesheet" type="text/css" href="../resources/css/searchmaps.css" />
 		<link rel="stylesheet" type="text/css" href="../resources/css/jquery.autocomplete.css" />
 		
-		<script type="text/javascript" language="javascript" src="../resources/js/jquery-1.6.1.js">
-		</script>	
+		<link href="../resources/css/jquery-ui/ui-lightness/jquery-ui-1.8.16.custom.css" rel="stylesheet" type="text/css"/>
+									
+<?
+			include("include-scripts.php");
+?>			
 		
-		<script type="text/javascript" language="javascript" src="../resources/js/jquery.autocomplete.js">
-		</script>
-		
-		<script type="text/javascript" src="../resources/js/jquery.corner.js?v2.11">
-		</script>
-		
-		
-		<script type="text/javascript" src="https://apis.google.com/js/plusone.js">
-	  		{lang: 'es'};
-		</script>
-		
-		<script>
-	 	 $(document).ready(function(){
-			$("#keywords_textfield").autocomplete("http://localhost/tusmapas/php_scripts/keywords-search-jquery.php");
-			$("#search-box").corner();
-			$("#introduction").corner();
-		  });
+			
+	<!-- **************************************************************************************************** -->	
+			<script>
+			$(document).ready(function() {
+					<?
+						include("include-scripts-facebook.php");
+						include("include-scripts-uservoice.php"); 
+						include("include-scripts-map-metadata-dialog.php");
+					?>
+					$("#keywords_textfield").autocomplete("http://localhost/tusmapas/php_scripts/keywords-search-jquery.php");
+					$("#search-box").corner();
+					$("#introduction").corner();
+			});
 
-		  function fillForm(keyword){
-			  $("#keywords_textfield").val(keyword);
+			 function fillForm(keyword){
+				  $("#keywords_textfield").val(keyword);
 
-		  }
+			  }
 
-		  function submitForm(){
-			  document.forms['home_search_form'].submit();
-		  }
-	    </script>	
+			  function submitForm(){
+				  document.forms['home_search_form'].submit();
+			  }
+			</script>
 <? 
 	echo "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">";
-	echo "<meta name=\"keywords\" content=\"".$keywords."mapas, maps, wms, cartografia, google maps, gogle\">";
-	echo "<meta name=\"Description\" content=\"".$serviceAbstract."\" />"; 
+	echo "<meta name=\"keywords\" content=\"mapas, maps, wms, cartografia, google maps, gogle\">";
 	echo "<meta name=\"Author\" content=\"Alvaro Zabala Ordóñez - azabala@gmail.com\" />"; 
 	echo "<meta name=\"Subject\" content=\"Busca ciudades y mapas de todo el mundo: WMS, KML, KMZ, GPX\" />"; 
 	echo "<meta name=\"Robots\" content=\"index, follow\" />"; 
@@ -143,10 +141,23 @@
 				</div>
 				
 			</div><!-- container -->
-
+			<div class="container">
+				<div class="span-24 last">
 <?
  		include("keywords-widget.php");
+?> 		
+      			</div>
+      		</div>
+      		<br></br>
+      		<div class="container">
+      			<div class="span-24 last">
+<?
 		include("producer-widget.php");
+?>
+				</div>
+		</div>
+		<br></br>
+<?		
 		include("tailer-widget.php");
 }catch(PDOException $e){
 	echo $e->getMessage();

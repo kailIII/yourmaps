@@ -1,6 +1,4 @@
-<?php
-
-	
+<?php	
 include("Config.class.php");
 include("MapUtils.class.php");
 $config = Config::singleton();
@@ -10,7 +8,10 @@ $password = $config->password;
 
 
 $api = "openlayers";
-$requiredMap = $_GET['mapa'];
+$xmin = $_GET['xmin'];
+$ymin = $_GET['ymin'];
+$xmax = $_GET['xmax'];
+$ymax = $_GET['ymax'];
 
 
 $height = 356;
@@ -22,11 +23,75 @@ try {
 		 
 		$dbh->query("SET CHARACTER SET utf8");
 		
-		$statement = $dbh->query("SELECT service_url,friendly_url, xmin, ymin, xmax, ymax, keywords_list, service_title, service_abstract, contact_organisation, layer_names, layer_titles, crs, is_queryable, wms_version, 'WMS' as type, pk_id FROM WMS_SERVICES where friendly_url = '".$requiredMap."' UNION ALL SELECT url_origen,friendly_url, xmin, ymin, xmax, ymax, '', document_name, description, origen, '', '','EPSG:4326',1,'','KML' as type, pk_gid FROM KML_SERVICES where friendly_url = '".$requiredMap."'");
+		$sql = "SELECT service_url,friendly_url, xmin, ymin, xmax, ymax, (xmax-xmin) width, keywords_list, service_title, service_abstract, contact_organisation, layer_names, layer_titles, crs, is_queryable, wms_version, 'WMS' as type, pk_id FROM WMS_SERVICES WHERE MBRIntersects(GeomFromText('POLYGON((:xmin :ymin, :xmax :ymin, :xmax :ymax, :xmin :ymax, :xmin :ymin  ))'),BBOX) order by width asc".
+			"UNION ALL ".
+            "SELECT SELECT url_origen,friendly_url, xmin, ymin, xmax, ymax, '', document_name, description, origen, '', '','EPSG:4326',1,'','KML' as type, pk_gid FROM KML_SERVICES WHERE MBRIntersects(GeomFromText('POLYGON((:xmin :ymin, :xmax :ymin, :xmax :ymax, :xmin :ymax, :xmin :ymin ))'),BBOX) order by width asc";
 		
-		$statement->execute();
-		if($row = $statement->fetch()){
+		$stmt = $dbh->prepare($sql);
+		
+		$stmt->bindParam(':xmin', $xmin);
+		$stmt->bindParam(':xmax', $xmax);
+		$stmt->bindParam(':ymin', $ymin);
+		$stmt->bindParam(':ymax', $ymax);
+		
+		$stmt->execute();
+		if($row = $stmt->fetch()){
+?>
+		<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+	
+		<html dir="ltr" xml:lang="es" xmlns="http://www.w3.org/1999/xhtml">
+		<head>
+			<link rel="stylesheet" href="../resources/css/blueprint/screen.css" type="text/css" media="screen, projection">
+  			<link rel="stylesheet" href="../resources/css/blueprint/print.css" type="text/css" media="print"> 
+	  		<!--[if lt IE 8]>
+	    		<link rel="stylesheet" href="../resources/css/blueprint/ie.css" type="text/css" media="screen, projection">
+	  		<![endif]-->
+		
+			<link rel="stylesheet" type="text/css" href="../resources/css/mapa.css" />
+			<link rel="stylesheet" type="text/css" href="../resources/css/searchmaps.css" />
 			
+			<link rel="stylesheet" type="text/css" href="../resources/css/jquery.autocomplete.css" />
+			
+			<link href="../resources/css/jquery-ui/ui-lightness/jquery-ui-1.8.16.custom.css" rel="stylesheet" type="text/css"/>
+			
+		
+			<script type="text/javascript" language="javascript" src="../resources/js/jquery-1.6.2.min.js">
+			</script>
+			
+			<script type="text/javascript" language="javascript" src="../resources/js/jquery-ui-1.8.16.custom.min.js">
+			</script>	
+		
+			<script type="text/javascript" language="javascript" src="../resources/js/jquery.autocomplete.js">
+			</script>
+			
+			
+			<script>
+			$(document).ready(function() {
+				  var uvOptions = {};
+				  (function() {
+				    var uv = document.createElement('script'); uv.type = 'text/javascript'; uv.async = true;
+				    uv.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'widget.uservoice.com/t5F9fQHfLGeZLFLVvHvo4w.js';
+				    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(uv, s);
+				  })();
+			});
+			</script>
+						
+   			<script src='../resources/js/scripts.js' type='text/javascript'>
+   			</script>
+   			
+   			<script type="text/javascript" src="../resources/js/jquery.corner.js?v2.11">
+			</script>
+		
+		
+			<script type="text/javascript" src="https://apis.google.com/js/plusone.js">
+		  		{lang: 'es'};//FIXME esto se leera de la variable de entorno 
+			</script>
+	
+			
+			<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		
+<? 	
+		
 			$url = $row['service_url'];
 			
 			$xmin = $row['xmin'];
@@ -45,104 +110,12 @@ try {
 			$layerNames = $row['layer_names'];
 			$layerTitles = $row['layer_titles'];
 			$crs = $row['crs'];
-			if($crs == null)
-				$crs = '';
 			$isQueryable = $row['is_queryable'];
-			if($isQueryable == null)
-				$isQueryable = 0;
-				
 			$wmsVersion = $row['wms_version'];
-			if($wmsVersion == null)
-				$wmsVersion = '';
-							
+			
 			
 			$keywords;
 			$mapUtil = MapUtils::singleton();
-?>
-		<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-	
-		<html dir="ltr" xml:lang="es" xmlns="http://www.w3.org/1999/xhtml" xmlns:fb="http://www.facebook.com/2008/fbml" >
-		<head>
-			<link rel="stylesheet" href="../resources/css/blueprint/screen.css" type="text/css" media="screen, projection">
-  			<link rel="stylesheet" href="../resources/css/blueprint/print.css" type="text/css" media="print"> 
-	  		<!--[if lt IE 8]>
-	    		<link rel="stylesheet" href="../resources/css/blueprint/ie.css" type="text/css" media="screen, projection">
-	  		<![endif]-->
-		
-			<link rel="stylesheet" type="text/css" href="../resources/css/mapa.css" />
-			<link rel="stylesheet" type="text/css" href="../resources/css/searchmaps.css" />
-			
-			<link rel="stylesheet" type="text/css" href="../resources/css/jquery.autocomplete.css" />
-			
-			<link href="../resources/css/jquery-ui/ui-lightness/jquery-ui-1.8.16.custom.css" rel="stylesheet" type="text/css"/>
-			
-<?
-			include("include-scripts.php");
-?>			
-		
-			
-	<!-- **************************************************************************************************** -->	
-			<script>
-
-			function showLoading() {
-				$("#loading").show();
-			}
-	
-			function hideLoading() {
-			  $("#loading").hide();
-			}
-
-			
-			function reportMapProblem(){
-				showLoading();
-
-				$.ajax({
-					  type: "GET",
-					  url: "brokenmap.php",
-					  data: "map=<?=$requiredMap?>&type=<?=$type?>",
-					  success: function( data ) {
-							    hideLoading();
-								var messageArray = eval('(' + data + ')');
-								var messageString = messageArray['message'];
-	
-								$("#messagesDialog").append("<p>"+messageString+"</p>");
-								
-								$( "#messagesDialog" ).dialog({
-									height: 180,
-									width:600,
-									modal: true,
-									zIndex:99999,
-									buttons: {
-										"Ok": function() { 
-											$(this).dialog("close"); 
-										}
-									}
-								});	     
-							}//function data
-			     });//ajax
-			}//reportMapProblem
-
-			
-
-			$(document).ready(function() {
-					<?
-						include("include-scripts-facebook.php");
-						include("include-scripts-uservoice.php"); 
-						include("include-scripts-map-metadata-dialog.php");
-					?>
-					doAddFrame();
-			});
-			</script>
-		
-<!-- **************************************************************************************************** -->	
-	
-	
-	
-	
-			<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		
-<? 	
-		
 			
 			if($type == "KML"){
 				$keywords = $mapUtil->getKeywords($dbh, $row['pk_id'], "KML" );
@@ -162,7 +135,6 @@ try {
 							}//if title
 				}//if wikiloc
 			}else{
-//				$keywords2 = $row['keywords_list'];
 				$keywords = $mapUtil->getKeywords($dbh, $row['pk_id'], "WMS" );
 			}	
 			
@@ -172,6 +144,8 @@ try {
 				$keywordStr .= $keywords[$j]["text"] . ", ";
 			}//forsubject
 			$keywordStr .= $keywords[$numKeywords - 1]["text"];
+			
+			
 			echo "<meta name=\"keywords\" content=\"".$keywordStr."mapas, maps, wms, cartografia, google maps, gogle\">";
 			echo "<meta name=\"Description\" content=\"".strip_tags($serviceAbstract)."\" />"; 
 			echo "<meta name=\"Author\" content=\"Alvaro Zabala Ordóñez - azabala@gmail.com\" />"; 
@@ -184,7 +158,8 @@ try {
 			echo "<title>".$serviceTitle ." - Looking for maps: cities and maps of the world </title>";
 			
 			
- 			//we include a map engine. actually openlayers
+ 
+			//javascript generador del mapa
 			if($api == "ide-e")
 				include("./map_engines/idee-api.php");
 			else if($api == "mapea")
@@ -193,65 +168,25 @@ try {
 				include("./map_engines/leaflet.php");
 			else 	
 				include("./map_engines/openlayers-api.php"); 
-
-		if($type == "KML"){		
-?>
-		<script>
-			function doAddFrame(){
-				var div = "map-container";
-				var url = "<?= $friendlyUrl?>";
-				var serviceTitle = "<?= $serviceTitle?>";
-				var height = <?= $height?>;
-				var width = <?= $width?>;
-				var xmin = <?= $xmin?>;
-				var ymin = <?= $ymin?>;
-				var xmax = <?= $xmax?>;
-				var ymax = <?= $ymax?>;
-			
-
-				addFrameKml(div,url, serviceTitle, 
-						height, width, 
-						xmin, ymin, xmax, ymax); 
-			}
+?>				
+		</head>
 		
-		</script>		
-	</head>
+<?
+	if($type == "KML"){
+			
+?>
+	<body onload="addFrameKml('map-container','<?= $friendlyUrl?>','<?= $serviceTitle?>', <?= $height?>,<?= $width?> ,<?= $xmin?> ,<?= $ymin?> ,<?= $xmax?> ,<?= $ymax?> )">
 <?	
 	}else if($type == "WMS"){
 ?>
-		<script>
-			function doAddFrame(){
-				var div = "map-container";
-				var url = "<?= $url?>";
-				var serviceTitle = "<?= $serviceTitle?>";
-				var height = <?= $height?>;
-				var width = <?= $width?>;
-				var xmin = <?= $xmin?>;
-				var ymin = <?= $ymin?>;
-				var xmax = <?= $xmax?>;
-				var ymax = <?= $ymax?>;
-				var layerNames = <?= json_encode($layerNames)?>;
-				var layerTitles = <?= json_encode($layerTitles)?>;
-				var crs = "<?= $crs?>";
-				var isQueryable = <?= $isQueryable?>;
-				var wmsVersion = "<?= $wmsVersion?>";
-
-				addFrame(div,url, serviceTitle, 
-						height, width, 
-						xmin, ymin, xmax, ymax,
-						layerNames, layerTitles, 
-						crs, isQueryable, wmsVersion); 
-			}
-		
-		</script>		
-		</head>	
+			
+		<body onload="addFrame('map-container','<?= $url?>','<?= $serviceTitle?>', <?= $height?>,<?= $width?> ,<?= $xmin?> ,<?= $ymin?> ,<?= $xmax?> ,<?= $ymax?>,'<?= $layerNames?>','<?= $layerTitles?>','<?= $crs?>',<?= $isQueryable?>,'<?= $wmsVersion?>' )"> 
 <?
 	}
 ?>
-		<body>	
-		<?php include("menu-header.php")?>
+			<?php include("menu-header.php")?>
 			
-<div id="messagesDialog" title="Aviso de Looking4Maps" ></div>			
+			
 			<div class="container">
 			
 				<div class="span-24 last">
@@ -278,24 +213,18 @@ try {
 								</div>
 								
 								<div class="span-2 last">
-									<a href="mapamaximizado.php?mapa=<?=$requiredMap?>" target="_blank" class="maximizar_mapa"  title="Pantalla completa" > </a>
+									<a href="mapamaximizado.php?mapa=<?=$requiredMap?>" class="maximizar_mapa"  title="Pantalla completa" > </a>
 								</div>
 								
 								<div id="map-container" class="span-15 last">
-								</div>
-								
-								<!-- imagen que se muestra cuando se notifica un problema con el mapa -->
-								<div id="loading" style="display:none; position:relative;  width:100%; height:100%"; z-index:10000">
-  											<p><img src="../resources/images/big-ajax-loader.gif" />
-  											 Notificando problema con el mapa...
-  											 </p>
 								</div>
 									
 									
 								<div id="social-bar" class="span-15 last">
 									<!-- AddThis Button BEGIN -->
 									<div class="addthis_toolbox addthis_default_style " style="margin:7px 0px 7px 0px">
-										<a href="javascript:reportMapProblem()" title="Reportar problema" style="padding-left:4px;margin-left:3px">
+										
+										<a href="#" title="Reportar problema" style="padding-left:4px;margin-left:3px">
 											Notificar problema con el mapa
 										</a>
 										<a class="addthis_button_preferred_1"></a>
@@ -329,7 +258,7 @@ try {
 							
 									
 							<div class="span-8 last">
-								<h4><b>Fuente</b>: <a href="mapsfoundbyproducer.php?keywords=<?=$productor?>"><?=$productor?></a></h4>
+								<h4><b>Fuente</b>: <?=$productor?></h4>
 								<hr class="space"/>
 								<h4><b>Mapa</b>:  <?=$serviceTitle?></h4>
 								<hr class="space"/>
@@ -357,6 +286,11 @@ try {
 									echo $serviceAbstract;	
 								}
 ?>
+								
+								<hr class="space"/>
+								<h4><b>Capas</b></h4>
+								<div id="map_layer_switch"></div>
+								
 								<hr class="space"/>
 								<h4><b>Etiquetas</b></h4>
 <?								
@@ -364,7 +298,6 @@ try {
 									for($j = 0; $j < $numKeywords ; $j++ ){
 										$text = $keywords[$j]["text"];
 										$link = $keywords[$j]["friendly_url_text"];
-//										$link = $keywords[$j]["text"];
 										$computed = $keywords[$j]["computed"];
 										
 										echo "<a class='map-label' href='mapsfoundbykeyword.php?keywords=".$link."'>".$text."</a>";
@@ -386,11 +319,47 @@ try {
 									
 								<input type="button" 
 									class="large blue button" 
-									value="+ Mapas de la zona" 
-									onClick="goMapsAroundMe()" />
+									value="Mapas cerca de mí" 
+									onClick="javascript:goMapsAroundMe()" />
+									
+<!--										<input type="button" -->
+<!--									class="large blue button" -->
+<!--									value="Fotografías del entorno" -->
+<!--									onClick="javascript:window.location.href="around-me.php" />-->
 						</div><!-- span-8 -->
 		</div><!-- container -->
+		
+		<script type="text/javascript">
+			$(function(){
+	
+				var options = {
+						autoOpen: false,
+						width: 600,
+						buttons: {
+							"Ok": function() { 
+								$(this).dialog("close"); 
+							}
+						}
+				};
+				$("#dialog").dialog(options);
 				
+
+				// Dialog Link
+				$('#dialog_link').click(function(){
+					$('#dialog').dialog('open');
+					return false;
+				});
+				
+				//hover states on the static widgets
+				$('#dialog_link, ul#icons li').hover(
+					function() { $(this).addClass('menu-header.a'); }, 
+					function() { $(this).removeClass('menu-header.a'); }
+				);
+				
+			});
+		</script>
+			
+		
 		<?
 		/*
 		 Consulta para meter palabras clave de este servicio: 

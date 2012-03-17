@@ -42,6 +42,7 @@ $keyword = $_GET['keywords'];
 					
 			});
 			</script>
+	
 <? 
 	echo "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">";
 			
@@ -53,7 +54,7 @@ $keyword = $_GET['keywords'];
 	//echo "<link rel=\"shortcut icon\" href=\"http://localhost/spainholydays/favicon.ico\">";
 	echo "<link rel=\"copyright\" href=\"http://www.gnu.org/copyleft/fdl.html\">";
 
-	echo "<title>Results for search ".$keyword." - Looking for maps: cities and maps of the world </title>";
+	echo "<title>Results for map producer ".$keyword." - Looking for maps: cities and maps of the world </title>";
 	
 	try {
 		
@@ -61,22 +62,12 @@ $keyword = $_GET['keywords'];
 //		$statement = $dbh->query("select * from WMS_SERVICES where match(service_title,service_abstract, keywords_list, layer_names, layer_titles) against ('".$keyword."') IN NATURAL LANGUAGE MODE");
 		
 		$dbh->query("SET CHARACTER SET utf8");
-		//FIXME Review the query, sometimes returns duplicates
-		/**
-        there werent duplicates. the reason was that some keywords contanied others: 'andalucia' and 'fuentes de andalucia'. 
-        If a service have two keywords like that, it was listed two times.
-        
-        We must do a union with two queries:
-        
-        	select * from WMS_SERVICES, Wms_Keywords, Keywords_Services where Keywords_Services.fk_wms_id = WMS_SERVICES.pk_id and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Wms_Keywords.text like '%andalucia%' group by WMS_SERVICES.pk_id
-		 
-		and
 		
-			select * from KML_SERVICES,Wms_Keywords, Keywords_Services where Keywords_Services.fk_wms_id = KML_SERVICES.pk_gid and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Keywords_Services.service_type = 'KML' and Wms_Keywords.text like 'Sant Feliu De Guixols' group by PK_GID
-		 */
-		//FIXME En vez de text en la where no se deberia utilizar frienlyurl-txt??
-		$query = "select WMS_SERVICES.pk_id, friendly_url, contact_organisation, service_url, service_title, service_abstract, xmin, ymin, xmax, ymax, Wms_Keywords.pk_id, Wms_Keywords.text, Wms_Keywords.friendly_url_text, Wms_Keywords.computed, Keywords_Services.fk_keyword_id, Keywords_Services.fk_wms_id, Keywords_Services.service_type from WMS_SERVICES, Wms_Keywords, Keywords_Services where Keywords_Services.fk_wms_id = WMS_SERVICES.pk_id and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Keywords_Services.service_type = 'WMS' and Wms_Keywords.friendly_url_text like '%".$keyword."%' group by WMS_SERVICES.PK_ID".
-		" union all select pk_gid, friendly_url, origen, url_origen, document_name, description, xmin, ymin, xmax, ymax, Wms_Keywords.pk_id, Wms_Keywords.text, Wms_Keywords.friendly_url_text, Wms_Keywords.computed, Keywords_Services.fk_keyword_id, Keywords_Services.fk_wms_id, Keywords_Services.service_type  from KML_SERVICES , Wms_Keywords, Keywords_Services where Keywords_Services.fk_wms_id = KML_SERVICES.pk_gid and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Keywords_Services.service_type = 'KML' and Wms_Keywords.friendly_url_text like '%".$keyword."%' group by PK_GID";
+		$query = "select WMS_SERVICES.pk_id, friendly_url, contact_organisation, service_url, ".
+				"service_title, service_abstract, xmin, ymin, xmax, ymax from WMS_SERVICES where contact_organisation like '%".$keyword."%' group by WMS_SERVICES.PK_ID ".
+				" union all ". 
+				" select pk_gid, friendly_url, origen, url_origen, document_name, description, ".
+				" xmin, ymin, xmax, ymax from KML_SERVICES  where origen like '%".$keyword."%' group by PK_GID order by contact_organisation desc";
 		
 		$statement = $dbh->query($query);
 	?>	
@@ -114,7 +105,7 @@ $keyword = $_GET['keywords'];
 	
 			<div class="span-24 last" id="search-result-message" >
 						<p class="added">
-						Mapas relacionados con la búsqueda <strong><i><?=$keyword?></i></strong>. <?= $numResults?> resultados.
+						Mapas relacionados con el productor <strong><i><?=$keyword?></i></strong>. <?= $numResults?> resultados.
 						</p>
 			</div>
 				
@@ -241,8 +232,8 @@ $keyword = $_GET['keywords'];
 		      </div>
 		      </div><!-- container -->
 		   <?
-//		        include("keywords-widget.php");
-//				include("producer-widget.php");
+		        include("keywords-widget.php");
+				include("producer-widget.php");
 				include("tailer-widget.php");
 			?>	
 <?

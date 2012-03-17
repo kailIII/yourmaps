@@ -22,26 +22,34 @@ class MapUtils {
     }
     
     public function getKeywords($pdo, $mapId, $mapType){
-    	$query = "select Wms_Keywords.text, Wms_Keywords.friendly_url_text, Wms_Keywords.computed from Wms_Keywords, Keywords_Services where Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Keywords_Services.fk_wms_id = ".$mapId." and Keywords_Services.service_type = ".$mapType;  
+    	$solution = array();
+    	$query = "select Wms_Keywords.text, Wms_Keywords.friendly_url_text, Wms_Keywords.computed from Wms_Keywords, Keywords_Services where Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Keywords_Services.fk_wms_id = ".$mapId." and Keywords_Services.service_type = '".$mapType."'";  
 		$statement = $pdo->query($query);
 		if($statement->execute()){
-			$numResults = $statement->rowCount();
-			if ($numResults > 0){
-				$sql = "SELECT PK_GID FROM KML_SERVICES WHERE URL_ORIGEN = '".$this->urlOrigen."'";
-				$statement = $pdo->query($sql);
-				if($statement->execute()){
-					if($row = $statement->fetch()){
-						$this->gid = $row["PK_GID"];
-					}
-				return true;
+				$i = 0;
+				while ($row = $statement->fetch()){
+					//process $row with text, friendly_url_text and
+					array_push($solution, $row);
+					$i++;
+					
+					if($i > 4)
+					break;
 				}
-			}
 		}
-		return false;
-    	
-    	
-    	
+		return $solution;
     }
+    
+    function startsWith($haystack, $needle){
+	    $length = strlen($needle);
+	    return (substr($haystack, 0, $length) === $needle);
+	}
+
+	function endsWith($haystack, $needle){
+	    $length = strlen($needle);
+	    $start  = $length * -1; //negative
+	    return (substr($haystack, $start) === $needle);
+	}
+    
 	
 }
 

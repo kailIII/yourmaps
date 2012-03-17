@@ -10,6 +10,9 @@ echo "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">";
 try {
 		$dbh = new PDO("mysql:host=$hostname;dbname=tusmapas", $username, $password);
 		$dbh->query("SET CHARACTER SET utf8");
+		
+		
+		//FIXME añadir KML_SERVICES y las tablas de servicio que vayamos añadiendo
 		$statement = $dbh->query("select service_title, friendly_url from WMS_SERVICES");
 		$statement->execute();
 		while($row = $statement->fetch()){

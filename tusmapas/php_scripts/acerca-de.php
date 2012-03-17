@@ -1,4 +1,20 @@
 <?php
+
+	include("Config.class.php");
+	$config = Config::singleton();
+	$username = $config->username;
+	$hostname = $config->hostname;
+	$password = $config->password;
+	
+	
+	try {
+		$dbh = new PDO("mysql:host=$hostname;dbname=tusmapas",
+			 $username, $password, 
+			 array(PDO::ATTR_PERSISTENT => true));
+			 
+		$dbh->query("SET CHARACTER SET utf8");
+
+
 ?>
 	<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 	
@@ -13,24 +29,27 @@
 		
 		<link rel="stylesheet" type="text/css" href="../resources/css/mapa.css" />
 		<link rel="stylesheet" type="text/css" href="../resources/css/searchmaps.css" />
-		<link rel="stylesheet" type="text/css" href="../resources/css/jquery.autocomplete.css" />
+
 		
 		<script type="text/javascript" language="javascript" src="../resources/js/jquery-1.6.1.js">
 		</script>	
 		
-		<script type="text/javascript" language="javascript" src="../resources/js/jquery.autocomplete.js">
-		</script>
-		
 		<script type="text/javascript" src="../resources/js/jquery.corner.js?v2.11">
 		</script>
 		
-		
-		<script type="text/javascript" src="https://apis.google.com/js/plusone.js">
-	  		{lang: 'es'};
-		</script>
+		<link href="../resources/css/jquery-ui/ui-lightness/jquery-ui-1.8.16.custom.css" rel="stylesheet" type="text/css"/>
+			
+	<?
+			include("include-scripts.php");
+?>	
 		
 		<script>
 	 	 $(document).ready(function(){
+	 		<?
+					include("include-scripts-facebook.php");
+					include("include-scripts-uservoice.php"); 
+					include("include-scripts-map-metadata-dialog.php");
+				?>
 			$("#introduction").corner();
 		  });
 	    </script>	
@@ -52,9 +71,26 @@
 
 			<?php include("menu-header.php")?>
 			
+			<div class="container">
+			
+				<div class="span-24 last">
+					<script type="text/javascript"><!--
+						google_ad_client = "ca-pub-7845495201990236";
+						/* lookingformaps2 */
+						google_ad_slot = "9961918851";
+						google_ad_width = 728;
+						google_ad_height = 90;
+						//-->
+					</script>
+					<script type="text/javascript"
+					src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+					</script>
+				</div>
+			</div>
+			
 			<div class="container"> 
 				
-				<div class="span-10 preppend-3 last" id="introduction">
+				<div class="span-14 preppend-3 last" id="introduction">
 					<h2 class="left">
 						¿Qué es <em>lookingformaps.com</em>?
 					</h2>
@@ -82,6 +118,11 @@
  		include("keywords-widget.php");
 		include("producer-widget.php");
 		include("tailer-widget.php");
+		
+}catch(PDOException $e){
+	echo $e->getMessage();
+}
+$dbh = null;
 ?>
 
 		</body>
