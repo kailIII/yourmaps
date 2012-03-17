@@ -1,16 +1,8 @@
-/**
-OJO!
-Las URL de un CSS se referencian a la ubicacion del CSS
-(no a la ubicacion de la pagina contenedora)
-la web
-*/
-
-
 a.tag1{
 	font-size: 0.5 em;
 	text-decoration:none;
 }
-a.tag1:hover{text-decoration:underline;}
+
 
 a.tag2{
 	font-size: 1em;
@@ -131,43 +123,53 @@ div.cuerpo {
 	margin:0 auto;
 }
 
-#titulo {
-	display:block;
-	font-size:1.8em;
-	width:99%;
-	padding:2px;
-	font-weight:bold;
-	border-bottom:2px solid #fff;
-	margin: 0 auto;
-}
 
-/**#maximizar_mapa, #minimizar_mapa{display:block;z-index:1000;width:34px;height:20px;position:absolute;top:5px;right:6px;}*/
+
 a.maximizar_mapa {
-	background-image:url("http://localhost/tusmapas/resources/images/btn_maximizar_mapa.png");
-	display:block;
+	background-image:url("../images/btn_maximizar_mapa.png");
+	
 	z-index:1000;
-	width:34px;
-	height:20px;
 	background-color:transparent;
 	background-repeat:no-repeat;
 	background-position:top left;
 	cursor:pointer;
-	position:relative;
-	top:22px;
-	left:540px;
-	}
-a.minimizar_mapa {
-	background-image:url("http://localhost/tusmapas/resources/images/btn_minimizar_mapa.png");
-	display:block;
-	z-index:1000;
+	
+	display:inline-block;
 	width:34px;
 	height:20px;
+	
+	position:relative;
+	left:25px;
+	/*
+	
+	position:relative;
+	top: 0px;
+	left:550px;
+	
+	
+	*/
+}
+
+a.minimizar_mapa {
+	background-image:url("../images/btn_minimizar_mapa.png");
+	
+	z-index:1000;
+	
 	background-color:transparent;
 	background-repeat:no-repeat;
 	background-position:top left;
+	
+	display:inline-block;
+	width:34px;
+	height:20px;
+	/*
+	display:inline-block;
 	position:relative;
 	top:22px;
 	left:540px;
+	width:34px;
+	height:20px;
+	*/
 	cursor:pointer;
 }
 
@@ -205,13 +207,37 @@ a.maximizar_mapa:hover, a.minimizar_mapa:hover{background-position:bottom left;}
     border: 1px solid darkblue;
 }
 
+
+
+a.map-label {
+	color:#3E6D8E;
+	background-color:#E0EAF1;
+	border-bottom:1px solid #3E6D8E;
+	border-right:1px solid #7F9FB6;
+	padding:3px 4px 3px 4px;
+	margin:2px 2px 2px 0;
+	text-decoration:none;
+	font-size:90%;
+	line-height:2.4;
+	white-space:nowrap;
+}
+
+a.map-label:hover{
+	background-color:#3E6D8E;
+	color:#E0EAF1;
+	border-bottom:1px solid #37607D;
+	border-right:1px solid #37607D;
+	text-decoration:none;
+}
+
 .antepie {
 	width: 100%;
 	font-family: Arial,Helvetica,sans-serif;
 	clear: both;
-	background: #749F00  left top;
-	margin: 10px 0 0;
-float: left;
+	/*background: #749F00  left top;*/
+	background: #FFFFFF left top;
+	/*margin: 10px 0 0;*/
+	float: left;
 }
 
 
@@ -223,7 +249,38 @@ float: left;
 	color: #fff;
 	text-align: center;
 	position: fixed;
-bottom: 0;
+    bottom: 0;
+}
+
+
+#footer{
+	height:10%;
+	background-attachment: scroll;
+    background-color: #F4F4F4;
+    background-image: none;
+    background-position: 0 0;
+    background-repeat: repeat;
+    border-top-color: #E4E4E4;
+    border-top-style: solid;
+    border-top-width: 1px;
+    padding-bottom: 20px;
+    7-moz-background-clip: border;
+    -moz-background-origin: padding;
+    -moz-background-size: auto auto;
+}
+
+div#footie  {
+    background: #f4f4f4;
+    border-top: 1px solid #e4e4e4;
+    padding-bottom: 20px;
+}
+div#footie div.footer-container {
+    width: 980px;
+    text-align: left;
+    margin: 0 auto;
+    
+    padding: 20px 0;
+   
 }
 
 
@@ -281,7 +338,7 @@ bottom: 0;
 }
 
 .search_button {
-	background: transparent url(http://localhost/tusmapas/resources/images/sp_h_mnes.png) no-repeat 0 -61px;
+	background: transparent url(../images/sp_h_mnes.png) no-repeat 0 -61px;
 	width: 116px;
 	height: 32px;
 	font-size: 16px;
@@ -294,5 +351,73 @@ bottom: 0;
 	padding: 15px;
 	margin: 5px;
 	z-index:1
+}
+
+/*
+another type of buttons
+*/
+input.button {
+	float: left;
+	border: 0;
+	display: inline-block;
+	padding: 5px 10px 6px;
+	color: #fff;
+	text-decoration: none;
+	font-weight: bold;
+	line-height: 1;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+/* 	-webkit-box-shadow: 0 1px 3px #999; */
+	text-shadow: 0 -1px 1px #222;
+	border-bottom: 1px solid #222;
+	position: relative;
+	cursor: pointer;
+/* 	-webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.5); */
+	text-shadow: 0 -1px 1px rgba(0,0,0,0.25);
+	border-bottom: 1px solid rgba(0,0,0,0.25);
+}
+
+ /* Sizes ---------- */
+.small.button {
+    font-size: 11px;
+}
+.medium.button {
+    font-size: 13px;
+}
+.large.button {
+    font-size: 14px;
+    padding: 10px 14px 9px;
+}
+
+button.large.button {
+    font-size: 14px;
+    padding: 7px 7px 7px 10px;
+    border: 0;
+    border-bottom: 1px solid rgba(0,0,0,0.25);
+}
+ 
+/* Colors ---------- */
+.disabled.button {
+    background-color: #999;
+}
+
+.green.button {
+    background-color: #45b434;
+}
+
+.blue.button {
+    background-color: #2daebf;
+}
+.red.button {
+    background-color: #e33100;
+}
+.magenta.button {
+    background-color: #a9014b;
+}
+.orange.button {
+    background-color: #ff5c00;
+}
+.yellow.button {
+    background-color: #ffb515;
 }
 
