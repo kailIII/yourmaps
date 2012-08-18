@@ -15,17 +15,17 @@
 //http://es.wikiloc.com/wikiloc/geoServer.do?format=kml&id=1&includeDisplayed=true
 //
 //al 
-//411684
+//700000
 //
 //http://es.wikiloc.com/wikiloc/geoServer.do?format=kml&id=410053&includeDisplayed=true
 
-include('../Config.class.php');
-include ('../open-calais/opencalais.php');
-include ('../Geonames/Services/GeoNames.php');
+include_once $_SERVER["DOCUMENT_ROOT"]."/php_scripts/".'Config.class.php';
+include_once $_SERVER["DOCUMENT_ROOT"]."/php_scripts/". 'open-calais/opencalais.php';
+include_once $_SERVER["DOCUMENT_ROOT"]."/php_scripts/".'Geonames/Services/GeoNames.php';
 
-require_once '../KmlMap.class.php';
-require_once '../MapKeyword.class.php';
-require_once '../MapsKeywordRelationship.class.php';
+include_once $_SERVER["DOCUMENT_ROOT"]."/php_scripts/". 'kml/KmlMap.class.php';
+include_once $_SERVER["DOCUMENT_ROOT"]."/php_scripts/".'MapKeyword.class.php';
+include_once $_SERVER["DOCUMENT_ROOT"]."/php_scripts/". 'MapsKeywordRelationship.class.php';
 
 function getBoundingBox($coordinates){
 	$xmin = 1000;
@@ -53,12 +53,6 @@ function getBoundingBox($coordinates){
 	return array($xmin, $ymin,$xmax,$ymax);
 }
 
-
-$apikey = "q5nfs3a72xqnsqv9g866r5za";
-$oc = new OpenCalais($apikey);
-
-$geo = new Services_GeoNames("alvaro.zabala");
-
 $config = Config::singleton();
 $username = $config->username;
 $hostname = $config->hostname;
@@ -72,166 +66,181 @@ try {
         		'request_fulluri' => true,
     			),
 			);
-			$cxContext = stream_context_create($aContext);
+			
+//			$cxContext = stream_context_create($aContext);
 	
 		
-		$dbh = new PDO("mysql:host=$hostname;dbname=tusmapas", $username, $password);
-//		$statement = $dbh->query("select * from WMS_SERVICES where match(service_title,service_abstract, keywords_list, layer_names, layer_titles) against ('".$keyword."') IN NATURAL LANGUAGE MODE");
+			$dbh = new PDO("mysql:host=$hostname;dbname=tusmapas", $username, $password);
+			$dbh->query("SET CHARACTER SET utf8");
 		
-		$dbh->query("SET CHARACTER SET utf8");
+			for($i = 251963; $i <= 700000; $i ++){
 		
-		for($i = 799; $i <= 411684; $i ++){
-		
-			$url = "http://es.wikiloc.com/wikiloc/geoServer.do?format=kml&id=".$i."&includeDisplayed=true";
-			
-//			$kmlFile = file_get_contents($url);
-			
-			$kmlFile = file_get_contents($url, False, $cxContext);
-			
-			if($kmlFile){
+			$postdata = http_build_query(
+    			array(
+        			'id' => $i,
+        			'event' => 'download',
+    				'format' => 'kml'
+    			)
+			);
+
+			$opts = array('http' =>
+			array(
+			        'method'  => 'POST',
+			        'header'  => 'Content-type: application/x-www-form-urlencoded',
+			        'content' => $postdata
+			)
+			);
+
+			$context  = stream_context_create($opts);
+
+			$kmlFile  = file_get_contents('http://es.wikiloc.com/wikiloc/downloadToFile.do', false, $context);
 				
-				if(strpos($kmlFile, "<html xmlns='http://www.w3.org/1999/xhtml'>")){
-					echo "no se ha encontrado ".$i."<br>";
-					sleep(3);
-					continue;
-				}
+			//			$kmlFile = file_get_contents($url."?".$params, False, $cxContext);
 			
-				echo '<pre>';
-				print_r($kmlFile);
-				echo '</pre>';
-			
-				$xml = simplexml_load_string($kmlFile, null, LIBXML_NOCDATA);
-						
-				if($xml){
-					$ns = $xml->getDocNamespaces();
-					if(isset($ns[""])){
- 						$xml->registerXPathNamespace("default",$ns[""]);
-					}
-					$name = $xml->Document->name[0];
-			
-					$description = "";
-					$placeMarks = $xml->xpath('//default:Placemark');
-					if(sizeof($placeMarks) == 0){
-						echo $i." no tiene placemarks"."<br>";
-						
-						sleep(15);
-						
+				if($kmlFile){
+					
+					if(strpos($kmlFile, "<html")){
+						echo "no se ha encontrado ".$i."<br>";
+						sleep(3);
 						continue;
-					}else if(sizeof($placeMarks) == 1){
-						$description = $placeMarks[0]->description;
-					}else{
-						$lastDescription = "";
-						for($j = 0; $j < sizeof($placeMarks); $j++){
-							
-							//Revisar para que no aparezcan duplicados
-							if( $placeMarks[0]->name != $lastDescription)
-								$description .= $placeMarks[0]->name; 
-						}	
 					}
-					
-					$coordinates = $xml->xpath('//default:coordinates');
-					
-					$bbox = getBoundingBox($coordinates);
-					
-					
-					$kmlMap = new KmlMap("Wikiloc", $url, 
-								$kmlFile, $name, $description,
-								 $bbox[0], $bbox[1], $bbox[2], $bbox[3]);
-								 
-					if(! $kmlMap->exist($dbh)){
-						$kmlMap->save($dbh);
-					}else{
-						echo $name . " ya existia en bbdd";
-					}
-					
-					
-					//geotagging and semantical tagging
-					
-					
-					//OpenCalais
-					try{
-						$entities = $oc->getEntities($kmlFile);
-	
-						//$entities is a key - value array, where
-						//key is the entity type (person, url, place, etc)
-						//and value is an array with many values as string
-						
-						
-						foreach ($entities as $type => $values) {
-							echo "<b>" . $type . "</b>";
+				
+					echo '<pre>';
+					print_r($kmlFile);
+					echo '</pre>';
+				
+					$xml = simplexml_load_string($kmlFile, null, LIBXML_NOCDATA);
 							
-							foreach ($values as $valueItem) {
-								$mapKeyword = new MapKeyword($valueItem, true);
-								echo "<p>". $valueItem . "</p>";
-								if(! $mapKeyword->exist($dbh)){
-									$mapKeyword->save($dbh);
-								}
+					if($xml){
+						$ns = $xml->getDocNamespaces();
+						if(isset($ns[""])){
+	 						$xml->registerXPathNamespace("default",$ns[""]);
+						}
+						$name = $xml->Document->name[0];
+				
+						$description = "";
+						$placeMarks = $xml->xpath('//default:Placemark');
+						if(sizeof($placeMarks) == 0){
+							echo $i." no tiene placemarks"."<br>";
+							
+							sleep(15);
+							
+							continue;
+						}else if(sizeof($placeMarks) == 1){
+							$description = $placeMarks[0]->description;
+						}else{
+							$lastDescription = "";
+							for($j = 0; $j < sizeof($placeMarks); $j++){
 								
-								$relationship = new MapsKeywordRelationship($mapKeyword->getGid(), $kmlMap->getGid(), "KML");
-								if(!$relationship->exist($dbh)){
-									$relationship->save($dbh);
-								}
-							}//foreach valueItem
-						}//foreach entities
-						
-						unset($mapKeyword);
-						unset($relationship);
-					}catch(OpenCalaisException $e){
-						echo $e->getMessage();
-    				}
-					
-				// find all postal codes near by bbox centroid
-					$xcent = ($bbox[0] + $bbox[2]) / 2;
-					$ycent = ($bbox[1] + $bbox[3]) / 2;
-					
-					$postalCodes = $geo->findNearbyPostalCodes(array(
-					    'lat'     => $ycent,
-					    'lng'     => $xcent,
-					    'radius'  => 4, // 10km
-					    'maxRows' => 10
-					));
-					
-					foreach ($postalCodes as $code) {
-						
-						
-						$mapKeyword = new MapKeyword($code->placeName, true);
-						
-						echo "<p>". $code->placeName . "</p>";
-						if(! $mapKeyword->exist($dbh)){
-							$mapKeyword->save($dbh);
+								//Revisar para que no aparezcan duplicados
+								if( $placeMarks[0]->name != $lastDescription)
+									$description .= $placeMarks[0]->name; 
+							}	
 						}
 						
-						$relationship = new MapsKeywordRelationship($mapKeyword->getGid(), $kmlMap->getGid(), "KML");
-						if(!$relationship->exist($dbh)){
-							$relationship->save($dbh);
+						$coordinates = $xml->xpath('//default:coordinates');
+						
+						$bbox = getBoundingBox($coordinates);
+						
+						
+						$kmlMap = new KmlMap("Wikiloc", $url, 
+									$kmlFile, $name, $description,
+									 $bbox[0], $bbox[1], $bbox[2], $bbox[3]);
+									 
+						if(! $kmlMap->exist($dbh)){
+							$kmlMap->save($dbh);
+						}else{
+							echo $name . " ya existia en bbdd";
 						}
+						
+						
+						//geotagging and semantical tagging
+						
+						
+						//OpenCalais
+						try{
+							$entities = $oc->getEntities($kmlFile);
+		
+							//$entities is a key - value array, where
+							//key is the entity type (person, url, place, etc)
+							//and value is an array with many values as string
+							
+							
+							foreach ($entities as $type => $values) {
+								echo "<b>" . $type . "</b>";
+								
+								foreach ($values as $valueItem) {
+									$mapKeyword = new MapKeyword($valueItem, true);
+									echo "<p>". $valueItem . "</p>";
+									if(! $mapKeyword->exist($dbh)){
+										$mapKeyword->save($dbh);
+									}
+									
+									$relationship = new MapsKeywordRelationship($mapKeyword->getGid(), $kmlMap->getGid(), "KML");
+									if(!$relationship->exist($dbh)){
+										$relationship->save($dbh);
+									}
+								}//foreach valueItem
+							}//foreach entities
+							
+							unset($mapKeyword);
+							unset($relationship);
+						}catch(OpenCalaisException $e){
+							echo $e->getMessage();
+	    				}
+						
+					// find all postal codes near by bbox centroid
+						$xcent = ($bbox[0] + $bbox[2]) / 2;
+						$ycent = ($bbox[1] + $bbox[3]) / 2;
+						
+						$postalCodes = $geo->findNearbyPostalCodes(array(
+						    'lat'     => $ycent,
+						    'lng'     => $xcent,
+						    'radius'  => 4, // 10km
+						    'maxRows' => 10
+						));
+						
+						foreach ($postalCodes as $code) {
+							
+							
+							$mapKeyword = new MapKeyword($code->placeName, true);
+							
+							echo "<p>". $code->placeName . "</p>";
+							if(! $mapKeyword->exist($dbh)){
+								$mapKeyword->save($dbh);
+							}
+							
+							$relationship = new MapsKeywordRelationship($mapKeyword->getGid(), $kmlMap->getGid(), "KML");
+							if(!$relationship->exist($dbh)){
+								$relationship->save($dbh);
+							}
+						
+							
+							
+						    printf(" - %s (%s)\n", $code->postalCode, $code->placeName);
+						}
+						
+											
+						unset($kmlFile);
+						unset($bbox);
+						unset($postalCodes);
+						unset($entities);
+						unset($coordinates);
+						unset($placeMarks);
+						unset($xcent);
+						unset($ycent);
 					
-						
-						
-					    printf(" - %s (%s)\n", $code->postalCode, $code->placeName);
+						sleep(15);
 					}
-					
-										
-					unset($kmlFile);
-					unset($bbox);
-					unset($postalCodes);
-					unset($entities);
-					unset($coordinates);
-					unset($placeMarks);
-					unset($xcent);
-					unset($ycent);
+				}else{
+					echo "connection time out ".$i."<br>";
 				
 					sleep(15);
+					
+					continue;
 				}
-			}else{
-				echo "connection time out ".$i."<br>";
-			
-				sleep(15);
 				
-				continue;
 			}
-			
-		}
 	}catch(PDOException $e){
 		echo $e->getMessage();
     }

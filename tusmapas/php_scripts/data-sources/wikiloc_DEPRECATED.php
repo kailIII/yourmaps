@@ -19,9 +19,9 @@
 //
 //http://es.wikiloc.com/wikiloc/geoServer.do?format=kml&id=410053&includeDisplayed=true
 
-include_once '../Config.class.php';
-include_once '../open-calais/opencalais.php';
-include_once '../Geonames/Services/GeoNames.php';
+include('../Config.class.php');
+include ('../open-calais/opencalais.php');
+include ('../Geonames/Services/GeoNames.php');
 
 require_once '../kml/KmlMap.class.php';
 require_once '../MapKeyword.class.php';
@@ -65,24 +65,34 @@ $hostname = $config->hostname;
 $password = $config->password;
 
 try {
+	
+			$aContext = array(
+    			'http' => array(
+        		'proxy' => 'gw-par-rp.rel.com.ua:3128',
+        		'request_fulluri' => true,
+    			),
+			);
+			$cxContext = stream_context_create($aContext);
+	
 		
-		$dbh = new PDO("mysql:host=$hostname;dbname=tusmapas", $username, $password, array(
-   			 PDO::ATTR_PERSISTENT => true
-		));
+		$dbh = new PDO("mysql:host=$hostname;dbname=tusmapas", $username, $password);
 //		$statement = $dbh->query("select * from WMS_SERVICES where match(service_title,service_abstract, keywords_list, layer_names, layer_titles) against ('".$keyword."') IN NATURAL LANGUAGE MODE");
 		
 		$dbh->query("SET CHARACTER SET utf8");
 		
-		for($i = 1; $i <= 23305; $i ++){
+		for($i = 799; $i <= 411684; $i ++){
 		
-			$url = "http://www.naturatlas.com/php/generakml.php?id=".$i;
+			$url = "http://es.wikiloc.com/wikiloc/geoServer.do?format=kml&id=".$i."&includeDisplayed=true";
 			
-			$kmlFile = file_get_contents($url);
+//			$kmlFile = file_get_contents($url);
+			
+			$kmlFile = file_get_contents($url, False, $cxContext);
 			
 			if($kmlFile){
 				
 				if(strpos($kmlFile, "<html xmlns='http://www.w3.org/1999/xhtml'>")){
-					echo "no se ha encontrado ".$i;
+					echo "no se ha encontrado ".$i."<br>";
+					sleep(3);
 					continue;
 				}
 			
@@ -102,13 +112,20 @@ try {
 					$description = "";
 					$placeMarks = $xml->xpath('//default:Placemark');
 					if(sizeof($placeMarks) == 0){
-						echo $i." no tiene placemarks";
+						echo $i." no tiene placemarks"."<br>";
+						
+						sleep(15);
+						
 						continue;
 					}else if(sizeof($placeMarks) == 1){
 						$description = $placeMarks[0]->description;
 					}else{
+						$lastDescription = "";
 						for($j = 0; $j < sizeof($placeMarks); $j++){
-							$description = $description . $placeMarks[0]->name;
+							
+							//Revisar para que no aparezcan duplicados
+							if( $placeMarks[0]->name != $lastDescription)
+								$description .= $placeMarks[0]->name; 
 						}	
 					}
 					
@@ -117,7 +134,7 @@ try {
 					$bbox = getBoundingBox($coordinates);
 					
 					
-					$kmlMap = new KmlMap("Naturatlas", $url, 
+					$kmlMap = new KmlMap("Wikiloc", $url, 
 								$kmlFile, $name, $description,
 								 $bbox[0], $bbox[1], $bbox[2], $bbox[3]);
 								 
@@ -170,8 +187,8 @@ try {
 					$postalCodes = $geo->findNearbyPostalCodes(array(
 					    'lat'     => $ycent,
 					    'lng'     => $xcent,
-					    'radius'  => 10, // 10km
-					    'maxRows' => 100
+					    'radius'  => 4, // 10km
+					    'maxRows' => 10
 					));
 					
 					foreach ($postalCodes as $code) {
@@ -204,10 +221,13 @@ try {
 					unset($xcent);
 					unset($ycent);
 				
-					sleep(10);
+					sleep(15);
 				}
 			}else{
-				echo "connection time out ".$i;
+				echo "connection time out ".$i."<br>";
+			
+				sleep(15);
+				
 				continue;
 			}
 			
