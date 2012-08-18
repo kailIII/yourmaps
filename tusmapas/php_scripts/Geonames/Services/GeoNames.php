@@ -26,8 +26,8 @@
 /**
  * Dependencies.
  */
-require ("Exception.php");
-require ("php_scripts/HTTP/Request2.php");
+include_once "Exception.php";
+require_once $_SERVER["DOCUMENT_ROOT"]."/php_scripts/HTTP/Request2.php";
  
 /**
  * Main interface to the GeoNames API:

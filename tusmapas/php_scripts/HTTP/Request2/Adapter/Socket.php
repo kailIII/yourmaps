@@ -44,7 +44,7 @@
 /**
  * Base class for HTTP_Request2 adapters
  */
-require_once 'php_scripts/HTTP/Request2/Adapter.php';
+require_once $_SERVER["DOCUMENT_ROOT"]."/php_scripts".'/HTTP/Request2/Adapter.php';
 
 /**
  * Socket-based adapter for HTTP_Request2

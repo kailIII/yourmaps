@@ -59,6 +59,8 @@ try{
 			$endMap = $row["MAX_IKIMAP"];
 		}
 	}
+	
+	$messageText .= "start = ".$startMap." end = ".$endMap;
 }catch(PDOException $exception){
 	$messageText .= "<b>Conexión a BBDD no disponible</b><br/>";
 
@@ -125,8 +127,12 @@ for($i = $startMap; $i < $endMap; $i ++){
 	sleep(1);
 	
 	session_start();
-	if($_SESSION["cancel_ikimap"])
+	if($_SESSION["cancel_ikimap"]){
+		$_SESSION["cancel_ikimap"] = false;
+		$messageText .= " operacion cancelada por el indice ".$i;
+		session_write_close();
 		break;
+	}
 	session_write_close();
 }//for
 

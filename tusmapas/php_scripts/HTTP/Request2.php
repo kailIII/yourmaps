@@ -44,14 +44,14 @@
 /**
  * A class representing an URL as per RFC 3986.
  */
-require_once '../Net/URL2.php';
+require_once $_SERVER["DOCUMENT_ROOT"].'/php_scripts'.'/Net/URL2.php';
 
 /**
  * Exception class for HTTP_Request2 package
  */
-require_once 'php_scripts/HTTP/Request2/Exception.php';
+require_once $_SERVER["DOCUMENT_ROOT"]."/php_scripts". '/HTTP/Request2/Exception.php';
 
-require_once 'php_scripts/HTTP/Request2/Adapter/Socket.php';
+require_once $_SERVER["DOCUMENT_ROOT"]."/php_scripts".'/HTTP/Request2/Adapter/Socket.php';
 
 /**
  * Class representing a HTTP request message

@@ -44,7 +44,7 @@
 /**
  * Exception class for HTTP_Request2 package
  */
-require_once 'php_scripts/HTTP/Request2/Exception.php';
+require_once $_SERVER["DOCUMENT_ROOT"]."/php_scripts".'/HTTP/Request2/Exception.php';
 
 /**
  * Class representing a HTTP response

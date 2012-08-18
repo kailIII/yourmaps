@@ -44,7 +44,7 @@
 /**
  * Base class for exceptions in PEAR
  */
-require_once 'php_scripts/PEAR/Exception.php';
+require_once $_SERVER["DOCUMENT_ROOT"]."/php_scripts".'/PEAR/Exception.php';
 
 /**
  * Base exception class for HTTP_Request2 package

@@ -28,7 +28,7 @@
 </script>
 
 <script
-	src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAAE-YX8EJi6DbrGsUuYstTURQPvX9dPatAPssV01vsiHNP8i7lhxQQUvf8MKvpfau-8jVsw4hWqL_67g'>
+	src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=AIzaSyAwHyNgGRTfiB-gz3pHckZ2IIdF-UZGx9I'>
 </script>
 
 <script src="../resources/js/proj4js/proj4js-compressed.js" 
@@ -66,7 +66,7 @@
 <?	 	
 	}else if(strripos($crs, "23031")){
 ?>		
-<script src="../resources/js/proj4js/defs/EPSG25831.js" type="text/javascript"></script>
+<script src="../resources/js/proj4js/defs/EPSG23031.js" type="text/javascript"></script>
 <?	 		
 	}else{
 		if($crs != null && crs != ""){
@@ -139,10 +139,7 @@
 				map = new OpenLayers.Map(domParent, options);
 
 						
-				gmap=new OpenLayers.Layer.Google("Google Streets",{sphericalMercator:true});
-				gmap.projection = sphericalProjection;
-				map.addLayer(gmap);
-				map.setBaseLayer(gmap);
+				
 				
 				gsat=new OpenLayers.Layer.Google("Google Satellite",
 						{type:G_SATELLITE_MAP,
@@ -202,6 +199,11 @@
 				ghyb.projection = sphericalProjection;
 				map.addLayer(ghyb);
 				map.setBaseLayer(ghyb);
+
+				gmap=new OpenLayers.Layer.Google("Google Streets",{sphericalMercator:true});
+				gmap.projection = sphericalProjection;
+				map.addLayer(gmap);
+				map.setBaseLayer(gmap);
 
 			
 				projection = new OpenLayers.Projection("EPSG:900913");
@@ -296,7 +298,8 @@
             var layer = selectedFeature.layer;
             var map = layer.map;
 
-			var str = selectedFeature.attributes.name + " " + selectedFeature.attributes.description;            
+			//var str = selectedFeature.attributes.name + " " + selectedFeature.attributes.description;
+			var str = selectedFeature.attributes.name;            
             var popup = new OpenLayers.Popup.FramedCloud("Looking for maps", 
 			                			feature.geometry.getBounds().getCenterLonLat(),
 			                			new OpenLayers.Size(100,100),
@@ -404,10 +407,7 @@
 					map = new OpenLayers.Map(domParent, options);
 
 					
-					gmap=new OpenLayers.Layer.Google("Google Streets",{sphericalMercator:true});
-					gmap.projection = sphericalProjection;
-					map.addLayer(gmap);
-					map.setBaseLayer(gmap);
+					
 					
 					gsat=new OpenLayers.Layer.Google("Google Satellite",
 							{type:G_SATELLITE_MAP,
@@ -467,6 +467,11 @@
 					ghyb.projection = sphericalProjection;
 					map.addLayer(ghyb);
 					map.setBaseLayer(ghyb);
+
+					gmap=new OpenLayers.Layer.Google("Google Streets",{sphericalMercator:true});
+					gmap.projection = sphericalProjection;
+					map.addLayer(gmap);
+					map.setBaseLayer(gmap);
 
 
 					dst = map.getProjectionObject();
@@ -634,7 +639,58 @@
 					projection = dst;
 					withoutBaseLayers = true;
 				}
+
+				//Curiosly,  wmsLayersArray and wmsTitlesArray dont have the same length always
+				//we'll iterate on the largest array
 				
+				var layerNamesLength = wmsLayersArray.length;
+				var layerTitlesLength = wmsTitlesArray.length;
+
+				var iterateArray = null;
+
+				if(layerNamesLength > layerTitlesLength)
+					iterateArray = wmsLayersArray;
+				else
+					iterateArray = wmsTitlesArray;
+				
+				for(var i = 0; i < iterateArray.length; i++){
+
+					var layerName = wmsLayersArray[i];
+					if (layerName === undefined)
+						layerName = i + 1;
+					var layerTitle = wmsTitlesArray[i];
+					if (layerTitle === undefined)
+						layerTitle = i + 1;
+
+					
+
+					
+					layer = new OpenLayers.Layer.WMS( layerTitle,
+		                    sourceUrl,
+		                    {
+	                    		layers: layerName,
+	                    	 	transparent:true
+	                    	 },
+	                    	{
+	 	                    	format:"image/png",
+	                    	 	version: wmsVersion,
+	                    	 	transparent:true,
+                             	//maxExtent: layerBounds, 
+	                    	 	maxExtent: bounds,
+	                    	 	opacity: 0.7,
+	                    	 	styles:"default",
+	                    	 	singleTile: false
+		                    } 
+                    );
+                    layer.projection = projection;
+                    
+
+		            map.addLayer(layer);
+					if(i == 0 && withoutBaseLayers)
+		            	map.setBaseLayer(layer);
+				}//for
+				
+				/*
 				for(var i = 0; i < wmsLayersArray.length; i++){
 
 					var layerName = wmsLayersArray[i];
@@ -667,6 +723,9 @@
 		            	map.setBaseLayer(layer);
 				}//for
 
+				*/
+
+				
                 map.addControl(new OpenLayers.Control.PanZoomBar());
                 map.addControl(new OpenLayers.Control.Navigation());
                 var layerSwitcher = new OpenLayers.Control.LayerSwitcher({'div':OpenLayers.Util.getElement('layerswitcher'),overflow:scroll});
@@ -727,11 +786,12 @@
 			
 			function goMapsAroundMe(){
 				var bounds = map.getExtent();
+				bounds = bounds.transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
 				var xmin = bounds.left;
 				var xmax = bounds.right;
 				var ymin = bounds.bottom;
 				var ymax = bounds.top;
-
+				
 				window.location.href="maps-around.php?xmin="+xmin+"&xmax="+xmax+"&ymin="+ymin+"&ymax="+ymax;
 
 

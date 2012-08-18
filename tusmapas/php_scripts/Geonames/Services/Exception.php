@@ -26,7 +26,7 @@
 /**
  * Include the PEAR_Exception class.
  */
-require("php_scripts/PEAR/Exception.php");
+include $_SERVER["DOCUMENT_ROOT"]."/php_scripts".'/PEAR/Exception.php';
 
 /**
  * Base class for exceptions raised by the Services_GeoNames package.
