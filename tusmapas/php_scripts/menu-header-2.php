@@ -16,8 +16,7 @@ $fcbName = null;
 $fcbLink = null;
 
 $currentUrl = Util::curPageURL();
-$logoutUrl = "";
-$loginUrl = "";
+$logoutUrl = "logout.php";
 
 	
 //define('FACEBOOK_APP_ID', '154914597939036');
@@ -35,7 +34,7 @@ $userId = $facebook->getUser();
 if ($userId) {
   try {
     $user_profile = $facebook->api('/me');
-    $logoutUrl = $facebook->getLogoutUrl();
+    $logoutUrl = $currentUrl;
     
     //at this point we create a user (User.class.php) object with $user_profile information
     $fcbName = $user_profile["name"];
@@ -54,17 +53,9 @@ if ($userId) {
     $userId = null;
     $user = null;
     $facebook->destroySession();
-    $loginUrl = $facebook->getLoginUrl();
   }
 } //if $userId
-else{
-		
-  $params = array(
-  	 'scope' => 'email,user_location'
-  );
-	
-  $loginUrl = $facebook->getLoginUrl($params);
-}
+
 
 ?>
 	<div id="fb-root"></div>
@@ -90,13 +81,13 @@ else{
 
 
 	
-  function fbLogout(target)
-  {
-      FB.logout(function()
-      {
-          top.location.href = target;
-      });
-  }	
+		  function fbLogout(target)
+		  {
+		      FB.logout(function()
+		      {
+		          top.location.href = target;
+		      });
+		  }	
 
 
 	  		function showSendingMap() {
@@ -131,46 +122,50 @@ else{
 				return;
 			}
 			
-			var user = '<?=$user != null?$user->getUserName():"anonymous"?>';
-		  
-		  $.ajax({
-			  type: "GET",
-			  url: "api/addmap-backend.php",
-			  data: "map="+encodeURIComponent(mapUri)+"&type="+mapType+"&user="+user,
-			  success: function( data ) {
-						hideSendingMap();
-						var messageArray = eval('(' + data + ')');
 
-						var messageString = messageArray['message'];
-						var extendedMessage = messageArray['extendedMessage'];
-						
-						var docTitle = messageArray['docName'];
-						if(docTitle instanceof Array)
-							docTitle = docTitle[0];
-						
-						var docAbstract = messageArray['description'];
-						var keywords = messageArray['keywords'];
 
-						if(undefined != docTitle){
-							$("#messageBox").html("<p>Se ha añadido el mapa <b>'"+docTitle	+"'</b></p>");
-						}else if(undefined != messageString){
-							$("#messageBox").html("<p>"+messageString+"</p");
+
+			  
+			  var user = '<?=$user != null?$user->getUserName():"anonymous"?>';
+			  
+			  $.ajax({
+				  type: "GET",
+				  url: "api/addmap-backend.php",
+				  data: "map="+mapUri+"&type="+mapType+"&user="+user,
+				  success: function( data ) {
+							hideSendingMap();
+							var messageArray = eval('(' + data + ')');
+
+							var messageString = messageArray['message'];
+							var extendedMessage = messageArray['extendedMessage'];
+							
+							var docTitle = messageArray['docName'];
+							if(docTitle instanceof Array)
+								docTitle = docTitle[0];
+							
+							var docAbstract = messageArray['description'];
+							var keywords = messageArray['keywords'];
+
+							if(undefined != docTitle){
+								$("#messageBox").html("<p>Se ha añadido el mapa <b>'"+docTitle	+"'</b></p>");
+							}else if(undefined != messageString){
+								$("#messageBox").html("<p>"+messageString+"</p");
+							}
+							$("#messageBox").show();
+
+							     
+						},//function data
+						error:function(data, textStatus, errorThrown){
+							hideSendingMap();
+							$("#messageBox").html("<p>"+textStatus+"</p");
+							$("#messageBox").show();
 						}
-						$("#messageBox").show();
-
-						     
-					},//function data
-					error:function(data, textStatus, errorThrown){
-						hideSendingMap();
-						$("#messageBox").html("<p>"+textStatus+"</p");
-						$("#messageBox").show();
-					}
-	     });//ajax
+		     });//ajax
 
 
 
-	   }	   
-</script>
+		   }	   
+	</script>
 	
 	<div class="container">	
 				<div class="span-7">
@@ -186,26 +181,33 @@ else{
 				if($user == null)
 				{
 ?>				
+				
 				<div class="span-2">
-					<a class="menu-header" href="<?= $loginUrl ?>" >Entrar con Facebook</a>&nbsp;
-				</div>
-<!--				<div class="span-2">-->
 <!--					<a class="menu-header" href="#" id="login_dialog_link">Entrar</a>&nbsp;-->
-<!--				</div>-->
-<!--				-->
-<!--				<div id="login_dialog" title="Entrar en Looking4Maps" style="display:none">-->
-<!--					<label>Puedes utilizar para entrar tu cuenta de facebook</label>-->
-<!--						<br></br>-->
-<!--						<fb:login-button data-show-faces="true" -->
-<!--										 data-width="200" -->
-<!--										 data-max-rows="1"-->
-<!--										autologoutlink="true"-->
-<!--										 size="large" -->
-<!--										 onlogin="updateButton"-->
-<!--										 >	-->
-<!--						Login with Facebook-->
-<!--						</fb:login-button>		-->
-<!--				</div>	-->
+				<fb:login-button data-show-faces="true" 
+										 data-width="200" 
+										 data-max-rows="1"
+										autologoutlink="true"
+										 size="small" 
+										 onlogin="updateButton"
+										 >	
+						Entrar
+						</fb:login-button>		
+				</div>
+				
+				<div id="login_dialog" title="Entrar en Looking4Maps" style="display:none">
+					<label>Puedes utilizar para entrar tu cuenta de facebook</label>
+						<br></br>
+						<fb:login-button data-show-faces="true" 
+										 data-width="200" 
+										 data-max-rows="1"
+										autologoutlink="true"
+										 size="large" 
+										 onlogin="updateButton"
+										 >	
+						Login with Facebook
+						</fb:login-button>		
+				</div>	
 <?
 				}else{
 					
@@ -219,13 +221,11 @@ else{
 					<a class="menu-header" href="user-info.php"><?=$user->getUserName()?> </a>&nbsp;
 				</div>	
 				
-<!--				<div class="span-1 prepend-1">-->
-<!--						<a class="menu-header" href="javascript:fbLogout('<?=$logoutUrl?>');"> <center>Salir</center></a>&nbsp;-->
-<!--				-->
-<!--				</div>					-->
 				<div class="span-1 prepend-1">
-					<a class="menu-header" href="<?=$logoutUrl?>"> <center>Salir</center></a>&nbsp;
-				</div>
+						<a class="menu-header" href="javascript:fbLogout('<?=$logoutUrl?>');"> <center>Salir</center></a>&nbsp;
+				
+				</div>					
+				
 <?					
 				}
 ?>		

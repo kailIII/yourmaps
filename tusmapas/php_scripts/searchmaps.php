@@ -1,14 +1,18 @@
 <?php
-
-	include("Config.class.php");
+	include("include-scripts-headless.php");
+	include_once 'Config.class.php';
+	
+	
+	
 	$config = Config::singleton();
 	$username = $config->username;
 	$hostname = $config->hostname;
 	$password = $config->password;
+	$database = $config->database;
 	
 	
 	try {
-		$dbh = new PDO("mysql:host=$hostname;dbname=tusmapas",
+		$dbh = new PDO("mysql:host=$hostname;dbname=$database",
 			 $username, $password, 
 			 array(PDO::ATTR_PERSISTENT => true));
 			 
@@ -25,7 +29,7 @@
   		<!--[if lt IE 8]>
     		<link rel="stylesheet" href="../resources/css/blueprint/ie.css" type="text/css" media="screen, projection">
   		<![endif]-->
-<!--		<link rel="stylesheet" href="../resources/css/blueprint/plugins/screen.css" type="text/css" media="print"> -->
+		<!--		<link rel="stylesheet" href="../resources/css/blueprint/plugins/screen.css" type="text/css" media="print"> -->
 		
 		<link rel="stylesheet" type="text/css" href="../resources/css/mapa.css" />
 		<link rel="stylesheet" type="text/css" href="../resources/css/searchmaps.css" />
@@ -46,7 +50,8 @@
 						include("include-scripts-uservoice.php"); 
 						include("include-scripts-map-metadata-dialog.php");
 					?>
-					$("#keywords_textfield").autocomplete("http://localhost/tusmapas/php_scripts/keywords-search-jquery.php");
+//					$("#keywords_textfield").autocomplete("http://localhost/tusmapas/php_scripts/keywords-search-jquery.php");
+					$("#keywords_textfield").autocomplete("./keywords-search-jquery.php");
 					$("#search-box").corner();
 					$("#introduction").corner();
 			});
@@ -63,10 +68,10 @@
 <? 
 	echo "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">";
 	echo "<meta name=\"keywords\" content=\"mapas, maps, wms, cartografia, google maps, gogle\">";
-	echo "<meta name=\"Author\" content=\"Alvaro Zabala Ordóñez - azabala@gmail.com\" />"; 
+	echo "<meta name=\"Author\" content=\"Alvaro Zabala Ordóñez - azabala@lookingformaps.com\" />"; 
 	echo "<meta name=\"Subject\" content=\"Busca ciudades y mapas de todo el mundo: WMS, KML, KMZ, GPX\" />"; 
 	echo "<meta name=\"Robots\" content=\"index, follow\" />"; 
-	//echo "<link rel=\"shortcut icon\" href=\"http://localhost/spainholydays/favicon.ico\">";
+	//echo "<link rel=\"shortcut icon\" href=\"favicon.ico\">";
 	echo "<link rel=\"copyright\" href=\"http://www.gnu.org/copyleft/fdl.html\">";
 
 	echo "<title>Looking for maps: search cities and maps of the world </title>";
@@ -74,8 +79,8 @@
 		</head>
 		
 		<body>
-
 			<?php include("menu-header.php")?>
+
 			
 			<div class="container"> 
 				<div class="span-11" id="search-box">
@@ -106,7 +111,7 @@
 		 					onclick="javascript:submitForm()">
 		 					
 		 				<div style="width:400px; margin: 6px 0pt 0pt; font-family: Arial,Helvetica; font-style: normal; font-variant: normal; font-weight: normal; font-size: 14px; line-height: normal; font-size-adjust: none; font-stretch: normal; -x-system-font: none; float: left;">
-						 ej: <a title="protección de áreas naturales" href="mapsfoundbykeyword.php?keywords=protección de áreas naturales" class="inverse" onclick="">Protecci&oacute;n de &aacute;reas naturales</a>, 
+						 ej: <a title="15-M" href="mapsfoundbykeyword.php?keywords=15m" class="inverse" onclick="">Movimiento 15-M</a>, 
 						 	 <a title="aguas" href="mapsfoundbykeyword.php?keywords=aguas" class="inverse" onclick="">aguas</a>, 
 						 	 <a title="balnearios" href="mapsfoundbykeyword.php?keywords=balnearios" class="inverse" onclick="">balnearios</a> 
 					 	 </div>

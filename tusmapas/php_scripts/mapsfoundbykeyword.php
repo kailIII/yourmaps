@@ -1,14 +1,15 @@
 <?php
 
-
-include("Config.class.php");
-include("MapUtils.class.php");
-include("Pager/Pager.php");
+include("include-scripts-headless.php");
+include_once "Config.class.php";
+include_once "MapUtils.class.php";
+include_once "Pager/Pager.php";
 
 $config = Config::singleton();
 $username = $config->username;
 $hostname = $config->hostname;
 $password = $config->password;
+$database = $config->database;
 
 $keyword = $_GET['keywords'];
 
@@ -57,13 +58,15 @@ $keyword = $_GET['keywords'];
 	
 	try {
 		
-		$dbh = new PDO("mysql:host=$hostname;dbname=tusmapas", $username, $password);
+		$dbh = new PDO("mysql:host=$hostname;dbname=$database", $username, $password, array(
+   			 PDO::ATTR_PERSISTENT => true
+		));
 //		$statement = $dbh->query("select * from WMS_SERVICES where match(service_title,service_abstract, keywords_list, layer_names, layer_titles) against ('".$keyword."') IN NATURAL LANGUAGE MODE");
 		
 		$dbh->query("SET CHARACTER SET utf8");
 		//FIXME Review the query, sometimes returns duplicates
 		/**
-        there werent duplicates. the reason was that some keywords contanied others: 'andalucia' and 'fuentes de andalucia'. 
+        there werent duplicates. the reason was that some keywords contained others: 'andalucia' and 'fuentes de andalucia'. 
         If a service have two keywords like that, it was listed two times.
         
         We must do a union with two queries:
@@ -75,8 +78,8 @@ $keyword = $_GET['keywords'];
 			select * from KML_SERVICES,Wms_Keywords, Keywords_Services where Keywords_Services.fk_wms_id = KML_SERVICES.pk_gid and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Keywords_Services.service_type = 'KML' and Wms_Keywords.text like 'Sant Feliu De Guixols' group by PK_GID
 		 */
 		//FIXME En vez de text en la where no se deberia utilizar frienlyurl-txt??
-		$query = "select WMS_SERVICES.pk_id, friendly_url, contact_organisation, service_url, service_title, service_abstract, xmin, ymin, xmax, ymax, Wms_Keywords.pk_id, Wms_Keywords.text, Wms_Keywords.friendly_url_text, Wms_Keywords.computed, Keywords_Services.fk_keyword_id, Keywords_Services.fk_wms_id, Keywords_Services.service_type from WMS_SERVICES, Wms_Keywords, Keywords_Services where Keywords_Services.fk_wms_id = WMS_SERVICES.pk_id and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Keywords_Services.service_type = 'WMS' and Wms_Keywords.friendly_url_text like '%".$keyword."%' group by WMS_SERVICES.PK_ID".
-		" union all select pk_gid, friendly_url, origen, url_origen, document_name, description, xmin, ymin, xmax, ymax, Wms_Keywords.pk_id, Wms_Keywords.text, Wms_Keywords.friendly_url_text, Wms_Keywords.computed, Keywords_Services.fk_keyword_id, Keywords_Services.fk_wms_id, Keywords_Services.service_type  from KML_SERVICES , Wms_Keywords, Keywords_Services where Keywords_Services.fk_wms_id = KML_SERVICES.pk_gid and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Keywords_Services.service_type = 'KML' and Wms_Keywords.friendly_url_text like '%".$keyword."%' group by PK_GID";
+		$query = "select WMS_SERVICES.pk_id, friendly_url, contact_organisation, service_url, service_title, service_abstract, xmin, ymin, xmax, ymax, Wms_Keywords.pk_id, Wms_Keywords.text, Wms_Keywords.friendly_url_text, Wms_Keywords.computed, Keywords_Services.fk_keyword_id, Keywords_Services.fk_wms_id, Keywords_Services.service_type from WMS_SERVICES, Wms_Keywords, Keywords_Services where Keywords_Services.fk_wms_id = WMS_SERVICES.pk_id and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Keywords_Services.service_type = 'WMS' and (Wms_Keywords.friendly_url_text like '".$keyword."' or Wms_Keywords.text like '".$keyword."' or service_title like '%".$keyword."%' or service_abstract like '%".$keyword."%' )group by WMS_SERVICES.PK_ID".
+		" union all select pk_gid, friendly_url, origen, url_origen, document_name, description, xmin, ymin, xmax, ymax, Wms_Keywords.pk_id, Wms_Keywords.text, Wms_Keywords.friendly_url_text, Wms_Keywords.computed, Keywords_Services.fk_keyword_id, Keywords_Services.fk_wms_id, Keywords_Services.service_type  from KML_SERVICES , Wms_Keywords, Keywords_Services where Keywords_Services.fk_wms_id = KML_SERVICES.pk_gid and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Keywords_Services.service_type = 'KML' and ( Wms_Keywords.friendly_url_text like '".$keyword."'  or Wms_Keywords.text like '".$keyword."' or document_name like '%".$keyword."%' or description like '%".$keyword."%') group by PK_GID";
 		
 		$statement = $dbh->query($query);
 	?>	
@@ -218,6 +221,7 @@ $keyword = $_GET['keywords'];
 		       echo "</ul>";
 		       echo $links["all"];
 			}else{
+				//Num results == 0
 				echo "<div class='highlight large'>No se han encontrado resultados para el término buscado</div>";
 				include("adsense.php");
 			}

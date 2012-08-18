@@ -1,19 +1,19 @@
 <?php
 
-	header('Content-type: application/vnd.google-earth.kml+xml');
-	header('Content-Disposition: attachment; filename=lookingformaps.kml');
+	
 	$requiredMap = $_GET['mapa'];
 	
-	include("Config.class.php");
+	include_once "Config.class.php";
 	include("MapUtils.class.php");
 	$config = Config::singleton();
 	$username = $config->username;
 	$hostname = $config->hostname;
 	$password = $config->password;
+	$database = $config->database;
 	
 	
 	try {
-		$dbh = new PDO("mysql:host=$hostname;dbname=tusmapas",
+		$dbh = new PDO("mysql:host=$hostname;dbname=$database",
 		 $username, $password, 
 		 array(PDO::ATTR_PERSISTENT => true));
 		 
@@ -66,6 +66,8 @@
 				if(! MapUtils::singleton()->endsWith("?",$wmsUrl))
 					$wmsUrl .= "?";
 				
+				header('Content-type: application/vnd.google-earth.kml+xml');
+				header('Content-Disposition: attachment; filename='.$serviceTitle.'.kml');
 					
 				echo '<kml xmlns="http://earth.google.com/kml/2.2">';
 ?>

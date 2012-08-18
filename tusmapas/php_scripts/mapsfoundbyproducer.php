@@ -1,7 +1,7 @@
 <?php
 
-
-include("Config.class.php");
+include("include-scripts-headless.php");
+include_once "Config.class.php";
 include("MapUtils.class.php");
 include("Pager/Pager.php");
 
@@ -9,6 +9,7 @@ $config = Config::singleton();
 $username = $config->username;
 $hostname = $config->hostname;
 $password = $config->password;
+$database = $config->database;
 
 $keyword = $_GET['keywords'];
 
@@ -58,7 +59,9 @@ $keyword = $_GET['keywords'];
 	
 	try {
 		
-		$dbh = new PDO("mysql:host=$hostname;dbname=tusmapas", $username, $password);
+		$dbh = new PDO("mysql:host=$hostname;dbname=$database", $username, $password, array(
+   		 PDO::ATTR_PERSISTENT => true
+		));
 //		$statement = $dbh->query("select * from WMS_SERVICES where match(service_title,service_abstract, keywords_list, layer_names, layer_titles) against ('".$keyword."') IN NATURAL LANGUAGE MODE");
 		
 		$dbh->query("SET CHARACTER SET utf8");

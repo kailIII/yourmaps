@@ -5,6 +5,10 @@ class Config {
     var $hostname;
  	var $username;
  	var $password;
+ 	var $database;
+ 	
+ 	var $facebookAppId;
+ 	var $facebookSecret;
  	
  	public function getHostName(){
  		return $hostname;
@@ -17,6 +21,10 @@ class Config {
 	public function getPassword(){
  		return $password;
  	}
+ 	
+ 	public function getDatabase(){
+ 		return $database;
+ 	}
     // A private constructor; previene creacion de objetos via new
     private function __construct()
     {
@@ -24,6 +32,9 @@ class Config {
 		$this->hostname = $db_configuracion['ip'];
 		$this->username = $db_configuracion['username'];
 		$this->password = $db_configuracion['password'];
+		$this->database = $db_configuracion['database'];
+		$this->facebookAppId = $db_configuracion['FACEBOOK_APP_ID'];
+ 		$this->facebookSecret = $db_configuracion['FACEBOOK_SECRET'];
     }
  
     public static function singleton()

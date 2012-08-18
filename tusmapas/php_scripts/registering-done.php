@@ -8,10 +8,11 @@ $config = Config::singleton();
 $username = $config->username;
 $hostname = $config->hostname;
 $password = $config->password;
+$database = $config->database;
 
 
 try {
-	$dbh = new PDO("mysql:host=$hostname;dbname=tusmapas",
+	$dbh = new PDO("mysql:host=$hostname;dbname=$database",
 	$username, $password,
 	array(PDO::ATTR_PERSISTENT => true));
 

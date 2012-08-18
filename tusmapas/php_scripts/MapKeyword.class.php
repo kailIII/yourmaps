@@ -1,6 +1,7 @@
 <?php
 
 require_once 'Util.class.php';
+
 class MapKeyword {
 	protected $gid;	
 	protected $keyText;
@@ -10,6 +11,14 @@ class MapKeyword {
 	
 	public function getGid(){
 		return $this->gid;
+	}
+	
+	public function getKeyText(){
+		return $this->keyText;
+	}
+	
+	public function getFriendlyUrlText(){
+		return $this->friendlyUrlText;
 	}
 	
 	

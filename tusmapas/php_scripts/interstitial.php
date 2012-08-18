@@ -1,13 +1,14 @@
 <?php
-	include("Config.class.php");
+	include("include-scripts-headless.php");
+	include_once "Config.class.php";
 	$config = Config::singleton();
 	$username = $config->username;
 	$hostname = $config->hostname;
 	$password = $config->password;
-	
+	$database = $config->database;
 	
 	try {
-		$dbh = new PDO("mysql:host=$hostname;dbname=tusmapas",
+		$dbh = new PDO("mysql:host=$hostname;dbname=$database",
 			 $username, $password, 
 			 array(PDO::ATTR_PERSISTENT => true));
 			 
@@ -111,8 +112,8 @@
 					<script type="text/javascript" src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
 					</script> 
 
-					<h3 class="countdown">Iniciando descarga...</h3>
-				 	<h3>Si la descarga no comienza automáticamente, visite este 
+					<h3 class="countdown large loud">Iniciando descarga...</h3>
+				 	<h3 class="large loud">Si la descarga no comienza automáticamente, visite este 
 				 	<a href='get-kml.php?mapa=<?=$requiredMap?>'>enlace</a> 
 				 	o vuelva a la <a href="javascript:history.back(-1)">página del mapa</a>
 				 	<p>Registrate para evitar estas esperas en las descargas de mapas.</p>

@@ -1,4 +1,5 @@
 <?php
+include_once 'include-scripts-headless.php';
 /**
  * This script processes broken maps reports from map.php.
  * 
@@ -9,7 +10,6 @@
  */
 require_once 'Config.class.php';
 require_once 'User.class.php';
-require_once 'facebook-sdk/facebook.php';
 require_once 'Util.class.php';
 
 
@@ -19,11 +19,8 @@ $config = Config::singleton();
 $username = $config->username;
 $hostname = $config->hostname;
 $password = $config->password;
+$database = $config->database;
 
-
-//facebook authentication
-define('FACEBOOK_APP_ID', '154914597939036');
-define('FACEBOOK_SECRET', 'aa9a1c5c6bd7384b7f5df3f8d84c49ad');
 
 $brokenMap = $_GET['map'];
 $mapType = $_GET['type'];
@@ -31,13 +28,11 @@ $mapType = $_GET['type'];
 
 try {
 	
-	$dbh = new PDO("mysql:host=$hostname;dbname=tusmapas", $username, $password);
+	$dbh = new PDO("mysql:host=$hostname;dbname=$database", $username, $password, array(
+ 	   PDO::ATTR_PERSISTENT => true
+	));
 	$dbh->query("SET CHARACTER SET utf8");
 
-	$facebook = new Facebook(array(
-	  'appId' => FACEBOOK_APP_ID,
-	  'secret' => FACEBOOK_SECRET,
-	));
 	
 	$userId = $facebook->getUser();
 	if ($userId) {
@@ -70,7 +65,6 @@ try {
 	//TODO Verificar antes si el usuario ha reportado un problema sobre ese mapa
 	$statement = $dbh->query( "insert into BROKEN_MAPS_REPORTS(map_type, map_url, user_id) values(' "
 			.$mapType."','".$brokenMap."',".$userId.")");
-	$statement->execute();
 	
 	$message = array('message' => 'Operacion reportada con éxito. Revisaremos el mapa '.$brokenMap);
 	
@@ -78,7 +72,7 @@ try {
 		
 }catch(PDOException $e){
 	$message = array('message' => 'Ha habido problemas al intentar reportar el problema. Por favor, inténtelo más tarde');
-	print json_encode($e->getMessage());
+	print json_encode($message);
 }
 $dbh = null;
 $userId = null;

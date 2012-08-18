@@ -1,12 +1,13 @@
 <?php
 
-	
-include("Config.class.php");
-include("MapUtils.class.php");
+include("include-scripts-headless.php");
+include_once "Config.class.php";
+include_once "MapUtils.class.php";
 $config = Config::singleton();
 $username = $config->username;
 $hostname = $config->hostname;
 $password = $config->password;
+$database = $config->database;
 
 
 $api = "openlayers";
@@ -16,7 +17,7 @@ $requiredMap = $_GET['mapa'];
 $height = 356;
 $width = 350;
 try {
-		$dbh = new PDO("mysql:host=$hostname;dbname=tusmapas",
+		$dbh = new PDO("mysql:host=$hostname;dbname=$database",
 		 								$username, $password, 
 							 array(PDO::ATTR_PERSISTENT => true));
 		 
@@ -217,6 +218,8 @@ try {
 		</script>		
 	</head>
 <?	
+		$counterSql = "UPDATE KML_SERVICES SET counter=counter+1 WHERE url_origen = '".$url."'";
+		$dbh->query($counterSql);
 	}else if($type == "WMS"){
 ?>
 		<script>
@@ -246,14 +249,17 @@ try {
 		</script>		
 		</head>	
 <?
-	}
+			$counterSql = "UPDATE WMS_SERVICES SET counter=counter+1 WHERE service_url = '".$url."'";
+			$dbh->query($counterSql);
+	}//else type WMS
 ?>
 		<body>	
-		<?php include("menu-header.php")?>
+			<?php include("menu-header.php")?>
 			
-<div id="messagesDialog" title="Aviso de Looking4Maps" ></div>			
+			<div id="messagesDialog" title="Aviso de Looking4Maps" >
+			</div>			
+			
 			<div class="container">
-			
 				<div class="span-24 last">
 					<script type="text/javascript"><!--
 						google_ad_client = "ca-pub-7845495201990236";
@@ -263,9 +269,11 @@ try {
 						google_ad_height = 90;
 						//-->
 					</script>
+					
 					<script type="text/javascript"
 					src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
 					</script>
+					
 				</div>
 			</div>
 			
@@ -276,6 +284,62 @@ try {
 												 	<?=$serviceTitle?>
 										</em>
 								</div>
+								
+<?
+			if($user != null && $user->getAdmin() && $type == "WMS"){
+?>
+								<script>
+									 function updateWms(){
+										
+										  var mapUri = "<?=$url?>"; 
+									
+										
+									  
+									  $.ajax({
+										  type: "GET",
+										  url: "api/update-cached-map.php",
+										  data: "map="+encodeURIComponent(mapUri),
+										  success: function( data ) {
+										
+													var messageArray = eval('(' + data + ')');
+	
+													var messageString = messageArray['message'];
+													var extendedMessage = messageArray['extendedMessage'];
+													
+													var docTitle = messageArray['docName'];
+													if(docTitle instanceof Array)
+														docTitle = docTitle[0];
+													
+													var docAbstract = messageArray['description'];
+													var keywords = messageArray['keywords'];
+	
+													if(undefined != docTitle){
+														alert("<p>Se ha actualizado el mapa <b>'"+docTitle	+"'</b></p>");
+													}else if(undefined != messageString){
+														alert("<p>"+messageString+"</p");
+													}
+
+													window.location.reload();
+													
+	
+													     
+												},//function data
+												error:function(data, textStatus, errorThrown){
+													alert("<p>"+textStatus+"</p");
+												}
+								     });//ajax
+	
+								   }	   
+								
+								</script>	
+								<div class="span-2 last">
+									<a href="" target="_blank" class="refresh_wms"  title="Refrescar cache wms" onClick="javascript:updateWms()" > </a>
+								</div>
+<?
+			}
+?>
+
+							
 								
 								<div class="span-2 last">
 									<a href="mapamaximizado.php?mapa=<?=$requiredMap?>" target="_blank" class="maximizar_mapa"  title="Pantalla completa" > </a>
@@ -317,7 +381,7 @@ try {
 									
 									<div class="fb-comments" 
 										data-href="<?=Util::curPageURL()?>" 
-										data-num-posts="3" 
+										data-num-posts="5" 
 										data-width="900">
 									</div>
 									
@@ -325,15 +389,14 @@ try {
 									
 								
 						</div><!-- span-15 -->
-							
-							
-									
+														
 							<div class="span-8 last">
 								<h4><b>Fuente</b>: <a href="mapsfoundbyproducer.php?keywords=<?=$productor?>"><?=$productor?></a></h4>
 								<hr class="space"/>
 								<h4><b>Mapa</b>:  <?=$serviceTitle?></h4>
 								<hr class="space"/>
-								
+								<h4><b>URL</b>: <a href='<?=$url?>'><?=$url?></a></h4>
+								<hr class="space"/>
 								
 <?
 								$strlen = strlen($serviceAbstract);
@@ -360,15 +423,47 @@ try {
 								<hr class="space"/>
 								<h4><b>Etiquetas</b></h4>
 <?								
+								$maxKeywords = 4;
 								if($numKeywords > 0){
-									for($j = 0; $j < $numKeywords ; $j++ ){
+									for($j = 0; $j < $maxKeywords ; $j++ ){
 										$text = $keywords[$j]["text"];
 										$link = $keywords[$j]["friendly_url_text"];
 //										$link = $keywords[$j]["text"];
 										$computed = $keywords[$j]["computed"];
 										
-										echo "<a class='map-label' href='mapsfoundbykeyword.php?keywords=".$link."'>".$text."</a>";
-									}
+										if(! isset($text) && ! isset($link))
+											continue;
+?>										
+										<a class='map-label' href='mapsfoundbykeyword.php?keywords=<?=$link?>'><?=$text?></a>
+<?																		
+									}//for
+									if($numKeywords > 3){
+?>
+											
+												... <a href='#' id='dialog_link_keywords'>Ver resto</a>
+												<p>
+												<div id='dialog_keywords' title='keywords'style='display:none'>
+<?
+												for($j = 0; $j < $numKeywords; $j++){
+													$text = $keywords[$j]["text"];
+													$link = $keywords[$j]["friendly_url_text"];
+													$computed = $keywords[$j]["computed"];
+?>										
+													<a class='map-label' target="_blank" href='mapsfoundbykeyword.php?keywords=<?=$link?>'><?=$text?></a>
+
+<?
+												}//for
+?>
+
+										    	</div>			
+												
+											</p>
+<?			
+									}//if	
+									
+									//funciones de administrador
+									
+											
 								}else{
 									echo "No hay etiquetas disponibles";
 								}	
@@ -379,10 +474,18 @@ try {
 								<input type="button" 
 									class="large green button" 
 									value="Ver en Google Earth" 
+<?
+if($user == null){
+?>
 									onClick="javascript:window.location.href='interstitial.php?mapa=<?=$requiredMap?>'" />
-							
-							
-							
+<?
+}else{
+?>							
+									onClick="javascript:window.location.href='get-kml.php?mapa=<?=$requiredMap?>'" />
+
+<?
+}
+?>								
 									
 								<input type="button" 
 									class="large blue button" 
@@ -399,6 +502,9 @@ try {
 		
 //			include("keywords-widget.php");
 			include("tailer-widget.php");
+			
+			
+		
 		
 		}else{
 			

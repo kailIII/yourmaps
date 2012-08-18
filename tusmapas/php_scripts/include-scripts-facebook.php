@@ -1,10 +1,14 @@
 <?php
+$facebookAppId = FACEBOOK_APP_ID;
+$facebookSecret = FACEBOOK_SECRET;
+
+
 ?>
 
 	
 window.fbAsyncInit = function() {
     FB.init({
-      appId      : '154914597939036', // App ID
+      appId      : '<?= $facebookAppId?>', // App ID
       channelURL : '//http://localhost/tusmapas/php_scripts/facebook-sdk/channel.php', // Channel File
       status     : true, // check login status
       cookie     : true, // enable cookies to allow the server to access the session
@@ -25,7 +29,7 @@ window.fbAsyncInit = function() {
 	    		     console.log('User cancelled login or did not fully authorize.');
 	    		   }         
 	 });
-};
+}//fbAsyncInit;
 
 // Load the SDK Asynchronously
 (function(d){
@@ -47,7 +51,7 @@ window.fbAsyncInit = function() {
 }(document, 'script', 'facebook-jssdk'));
 
 //facebook login dialog initialization code
-  var options = {
+  	var options = {
 			autoOpen: false,
 			width: 600,
 			buttons: {
@@ -70,3 +74,37 @@ window.fbAsyncInit = function() {
 		function() { $(this).addClass('menu-header.a'); }, 
 		function() { $(this).removeClass('menu-header.a'); }
 	);
+	
+	//add map dialog
+	var optionsMapDialog = {
+			autoOpen: false,
+			width: 600,
+			buttons: {},
+			zIndex:99999
+	};
+	$("#add_map_dialog").dialog(optionsMapDialog);
+	
+	
+	$("#add_map_dialog").bind('dialogclose', function(event) {
+    	resetDialog();
+ 	});
+	
+	$('#add_map_dialog_link').click(function(){
+		$('#add_map_dialog').dialog('open');
+		return false;
+	});
+	
+	
+	
+
+	//hover states on the static widgets
+	$('#add_map_dialog_link, ul#icons li').hover(
+		function() { $(this).addClass('menu-header.a'); }, 
+		function() { $(this).removeClass('menu-header.a'); }
+	);
+
+	
+	
+	
+	//twitter button
+!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");

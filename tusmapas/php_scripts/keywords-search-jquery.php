@@ -1,10 +1,11 @@
 <?php
 
-include("Config.class.php");
+include_once "Config.class.php";
 $config = Config::singleton();
 $username = $config->username;
 $hostname = $config->hostname;
 $password = $config->password;
+$database = $config->database;
 
 /**
  * Para que esta función PHP funcione correctamente se debe haber creado un indice FULL-TEXT
@@ -19,7 +20,9 @@ $password = $config->password;
 $keyword = $_GET['q'];
 
 try {
-		$dbh = new PDO("mysql:host=$hostname;dbname=tusmapas", $username, $password);
+		$dbh = new PDO("mysql:host=$hostname;dbname=$database", $username, $password, array(
+    		PDO::ATTR_PERSISTENT => true
+		));
 		//$statement = $dbh->query("select * from WMS_SERVICES where match(service_title,service_abstract, keywords_list, layer_names, layer_titles) against ('".$keyword."') IN NATURAL LANGUAGE MODE");
 		//$statement = $dbh->query("select * from WMS_SERVICES, Wms_Keywords, Keywords_Services where Keywords_Services.fk_wms_id = WMS_SERVICES.pk_id and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Wms_Keywords.text like '%".$keyword."'");
 		$dbh->query("SET CHARACTER SET utf8");

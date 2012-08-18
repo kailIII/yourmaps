@@ -1,17 +1,19 @@
 <?php
-include("Config.class.php");
+include("include-scripts-headless.php");
+include_once "Config.class.php";
 include("MapUtils.class.php");
 $config = Config::singleton();
 $username = $config->username;
 $hostname = $config->hostname;
 $password = $config->password;
+$database = $config->database;
 
 
 $api = "openlayers";
 $requiredMap = $_GET['mapa'];
 
 try {
-		$dbh = new PDO("mysql:host=$hostname;dbname=tusmapas",
+		$dbh = new PDO("mysql:host=$hostname;dbname=$database",
 		 								$username, $password, 
 							 array(PDO::ATTR_PERSISTENT => true));
 		 
@@ -162,6 +164,9 @@ try {
 		</script>		
 	</head>			
 <?	
+
+				$counterSql = "UPDATE KML_SERVICES SET counter=counter+1 WHERE url_origen = '".$url."'";
+				$dbh->query($counterSql);
 			}else if($type == "WMS"){
 ?>
 		<script>
@@ -190,7 +195,9 @@ try {
 		</script>		
 		</head>			
 <?
-			}
+				$counterSql = "UPDATE WMS_SERVICES SET counter=counter+1 WHERE service_url = '".$url."'";
+				$dbh->query($counterSql);
+			}//if type wms
 ?>
 			<body>
  			<div style='position:absolute;bottom:0px;left:0px;right:0px;padding:0;margin:0;border:0;opacity:0.85;display:block;z-index: 2000;font: normal 30px "PT Sans Bold";color: white;background-color:black'>

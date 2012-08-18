@@ -1,9 +1,9 @@
 <?php
-include("include-scripts-headless.php");	
+
+include("include-scripts-headless.php");
 include_once "Config.class.php";
 include("MapUtils.class.php");
-include_once "Pager/Pager.php";
-
+include("Pager/Pager.php");
 
 $config = Config::singleton();
 $username = $config->username;
@@ -11,30 +11,11 @@ $hostname = $config->hostname;
 $password = $config->password;
 $database = $config->database;
 
+$aUser = $_GET['user'];
 
-$xmin = $_GET['xmin'];
-$ymin = $_GET['ymin'];
-$xmax = $_GET['xmax'];
-$ymax = $_GET['ymax'];
-
-
-
-try {
-		$dbh = new PDO("mysql:host=$hostname;dbname=$database",
-		 								$username, $password, 
-							 array(PDO::ATTR_PERSISTENT => true));
-		 
-		$dbh->query("SET CHARACTER SET utf8");
-		
-		$sql = "select * from (SELECT service_url,friendly_url, xmin, ymin, xmax, ymax, (xmax-xmin) width, keywords_list, service_title, service_abstract, contact_organisation, layer_names, layer_titles, crs, is_queryable, wms_version, 'WMS' as type, pk_id FROM WMS_SERVICES WHERE MBRIntersects(GeomFromText('POLYGON(($xmin $ymin, $xmax $ymin, $xmax $ymax, $xmin $ymax, $xmin $ymin  ))'),BBOX) ".
-			"UNION ALL ".
-            " SELECT url_origen,friendly_url, xmin, ymin, xmax, ymax, (xmax-xmin) width,'', document_name, description, origen, '', '','EPSG:4326',1,'','KML' as type, pk_gid FROM KML_SERVICES WHERE MBRIntersects(GeomFromText('POLYGON(($xmin $ymin, $xmax $ymin, $xmax $ymax, $xmin $ymax, $xmin $ymin ))'),BBOX) ) as maps order by width asc";
-		
-		$statement = $dbh->query($sql);
-	
-		if($row = $statement->fetch()){
 ?>
-		<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+	<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 	
 	<html dir="ltr" xml:lang="es" xmlns="http://www.w3.org/1999/xhtml">
 	<head>
@@ -56,25 +37,37 @@ try {
 					<?
 						include("include-scripts-facebook.php");
 						include("include-scripts-uservoice.php"); 
-						include("include-scripts-map-metadata-dialog.php");
 					?>
-					$(".box").corner();
-					
+		
 			});
 			</script>
-	
 <? 
-	echo "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">";		
+	echo "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">";
+			
 	echo "<meta name=\"keywords\" content=\"mapas, maps, wms, cartografia, google maps, gogle\">";
-	echo "<meta name=\"Description\" content=\" Mapas asociados a la palabra clave ".$keyword."\" />"; 
 	echo "<meta name=\"Author\" content=\"Alvaro Zabala Ordóñez - azabala@gmail.com\" />"; 
 	echo "<meta name=\"Subject\" content=\"Busca ciudades y mapas de todo el mundo: : WMS, KML, KMZ, GPX\" />"; 
 	echo "<meta name=\"Robots\" content=\"index, follow\" />"; 
 	//echo "<link rel=\"shortcut icon\" href=\"http://localhost/spainholydays/favicon.ico\">";
 	echo "<link rel=\"copyright\" href=\"http://www.gnu.org/copyleft/fdl.html\">";
 
-	echo "<title>Maps around of  $xmin $ymin $xmax  $ymax - Looking for maps: cities and maps of the world </title>";
-?>
+	echo "<title>Maps created by user ".$aUser." - Looking for maps: cities and maps of the world </title>";
+	
+	try {
+		
+		$dbh = new PDO("mysql:host=$hostname;dbname=$database", $username, $password, array(
+  		  PDO::ATTR_PERSISTENT => true
+		));
+//		$statement = $dbh->query("select * from WMS_SERVICES where match(service_title,service_abstract, keywords_list, layer_names, layer_titles) against ('".$keyword."') IN NATURAL LANGUAGE MODE");
+		
+		$dbh->query("SET CHARACTER SET utf8");
+		
+		
+		$query = "select 'WMS' As service_type, WMS_SERVICES.pk_id, friendly_url, contact_organisation, service_url, service_title, service_abstract, xmin, ymin, xmax, ymax from WMS_SERVICES where username_fk = '".$aUser.
+		"' union all select 'KML' As service_type, pk_gid, friendly_url, origen, url_origen, document_name, description, xmin, ymin, xmax, ymax from KML_SERVICES  where username_fk = '".$aUser."'";
+		
+		$statement = $dbh->query($query);
+	?>	
 		</head>
 		
 		<body> 
@@ -84,6 +77,7 @@ try {
 		
 		<div class="container">
 	<?	
+		if($statement->execute()){
 			$numResults = $statement->rowCount();
 		
 			$params = array("totalItems" => $numResults,
@@ -102,13 +96,13 @@ try {
 			$perPage = $params['perPage'];
 			
 			// 2nd query based on 1st with LIMIT – this will be displaying data per page
-			$stmt2 = $dbh->query($sql. " LIMIT ".$from.", ".$to);
+			$stmt2 = $dbh->query($query. " LIMIT ".$from.", ".$to);
 			$stmt2->execute();
 	?>
 	
 			<div class="span-24 last" id="search-result-message" >
 						<p class="added">
-						Mapas en el entorno de las coordenadas <strong><i><?=$xmin?>, <?=$ymin?>, <?=$xmax?>, <?=$ymax?></i></strong>. <?= $numResults?> resultados.
+						Mapas creados por el usuario <strong><i><?=$aUser?></i></strong>. <?= $numResults?> resultados.
 						</p>
 			</div>
 				
@@ -142,7 +136,7 @@ try {
 					}
 					
 					if($serviceType == "KML"){
-						$keywords = $mapUtil->getKeywords($dbh, $r[0], "KML" );
+						$keywords = $mapUtil->getKeywords($dbh, $r[1], "KML" );
 						
 						if($contactOrganization == "Wikiloc"){
 							$serviceLogo = 
@@ -169,7 +163,7 @@ try {
 							}
 						}//if wikiloc
 					}else if($serviceType = "WMS"){
-						$keywords = $mapUtil->getKeywords($dbh, $r[0], "WMS" );
+						$keywords = $mapUtil->getKeywords($dbh, $r[1], "WMS" );
 					}
 											
 		?>								
@@ -212,7 +206,7 @@ try {
 		       echo "</ul>";
 		       echo $links["all"];
 			}else{
-				echo "<div class='highlight large'>No se han encontrado resultados para el término buscado</div>";
+				echo "<div class='highlight large'>No se han encontrado resultados para este usuario</div>";
 				include("adsense.php");
 			}
 		 ?>   	
@@ -235,20 +229,15 @@ try {
 		      </div>
 		      </div><!-- container -->
 		   <?
-		        include("keywords-widget.php");
-				include("producer-widget.php");
+//		        include("keywords-widget.php");
+//				include("producer-widget.php");
 				include("tailer-widget.php");
 			?>	
 <?
 		}else{
-		echo "<div class='highlight large'>No se han encontrado resultados en el entorno $xmin $ymin $xmax $ymax</div>";
-		include("adsense.php");
-		
+			echo "problemas con la bbdd";
 		}
 }catch(PDOException $e){
 	echo $e->getMessage();
 }
-$dbh = null;
 ?>
-	</body>
-</html>

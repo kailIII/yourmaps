@@ -1,5 +1,6 @@
 <?php
-	include("Config.class.php");
+	include("include-scripts-headless.php");
+	include_once "Config.class.php";
 	$config = Config::singleton();
 	$username = $config->username;
 	$hostname = $config->hostname;

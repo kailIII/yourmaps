@@ -1,7 +1,36 @@
 <?php
+
+include_once 'open-calais/opencalais.php';
+include_once 'Geonames/Services/GeoNames.php';
+
+
 class Util {
 
-
+	private static $openCalaisApiKey = "q5nfs3a72xqnsqv9g866r5za";
+	private static $openCalais;
+	
+	public static function getOpenCalais(){
+//		 if (!isset(self::$openCalais)) {
+//	            self::$openCalais  = new OpenCalais(self::$openCalaisApiKey);
+//	     }
+	     self::$openCalais  = new OpenCalais(self::$openCalaisApiKey);
+	     return self::$openCalais;
+     
+	}
+	
+	private static $geonamesUser = "alvaro.zabala";
+	private static $geonames;
+	
+	public static function getGeoNames(){
+		 if (!isset(self::$geonames)) {
+	            self::$geonames  = new Services_GeoNames(self::$geonamesUser);
+	     }
+	     
+	     return self::$geonames;
+     
+	}
+	
+	
 	public static function text2url($string) {
 			
 		$spacer = "-";
@@ -45,5 +74,37 @@ class Util {
 		}
 		return $pageURL;
 	}
+	
+	
+	public static function get_url_mime_type($url){
 
+		$ch = curl_init($url);
+		curl_setopt($ch, CURLOPT_BINARYTRANSFER, true); //for images
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		curl_setopt($ch, CURLOPT_COOKIESESSION, true);
+		curl_setopt($ch, CURLOPT_HEADER, 1);
+		curl_setopt($ch, CURLOPT_NOBODY, 1);
+		curl_setopt($ch,CURLOPT_SSL_VERIFYHOST,0);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+		$ret = curl_exec($ch);
+		if(! $ret){
+			$error =  curl_error($ch);
+			echo $error;
+			//throw an exception
+		}
+		$info = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);	
+		curl_close($ch);
+		return $info;	
+	}
+	
+	public static function get_url_file($url){
+		$ch = curl_init($url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		curl_setopt($ch, CURLOPT_HEADER, 1);
+		curl_setopt($ch, CURLOPT_NOBODY, 1);
+		curl_exec($ch);
+		return curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+	}
 }
