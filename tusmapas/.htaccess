@@ -1,3 +1,36 @@
-Options +FollowSymLinks -Indexes
 RewriteEngine on
-#RewriteRule ^towns/(.*+)$ php_scripts/towns.php?municipio=$1 [L]
+Options +FollowSymLinks -Indexes
+DirectoryIndex ./php_scripts/searchmaps.php
+
+RewriteRule ^main-add-1.php ./php_scripts/static-content/main-add-1.php [L]
+RewriteRule ^main-add-2.php ./php_scripts/static-content/main-add-2.php [L]
+RewriteRule ^main-add-3.php ./php_scripts/static-content/main-add-3.php [L]
+RewriteRule ^service-terms.php ./php_scripts/static-content/service-terms.php [L]
+RewriteRule ^acerca-de.php ./php_scripts/acerca-de.php [L]
+
+RewriteRule ^mapa.php ./php_scripts/mapa.php [L]
+RewriteRule ^searchmaps.php ./php_scripts/searchmaps.php [L]
+RewriteRule ^sitemap.php ./php_scripts/sitemap.php [L]
+RewriteRule ^mapsfoundbykeyword.php ./php_scripts/mapsfoundbykeyword.php [L]
+RewriteRule ^mapsfoundbyproducer.php ./php_scripts/mapsfoundbyproducer.php [L]
+RewriteRule ^mapsfoundbyuser.php ./php_scripts/mapsfoundbyuser.php [L]
+RewriteRule ^keywords-search-jquery.php ./php_scripts/keywords-search-jquery.php [L]
+RewriteRule ^interstitial.php ./php_scripts/interstitial.php [L]
+RewriteRule ^get-kml.php ./php_scripts/get-kml.php [L]
+RewriteRule ^api/(.*+)$ php_scripts/api/$1 [L]
+RewriteRule ^user-info.php ./php_scripts/user-info.php [L]
+RewriteRule ^mapamaximizado.php ./php_scripts/mapamaximizado.php [L]
+RewriteRule ^maps-around.php ./php_scripts/maps-around.php [L]
+RewriteRule ^add-maps-admin.php ./php_scripts/add-maps-admin.php [L]
+RewriteRule ^cancel-ikimap-import.php ./php_scripts/api/cancel-ikimap-import.php [L]
+RewriteRule ^enable-import-ikimap.php ./php_scripts/api/enable-import-ikimap.php [L]
+RewriteRule ^most-popular-widget.php ./php_scripts/most-popular-widget.php [L]
+
+
+
+ErrorDocument 400  400.php
+ErrorDocument 401  401.php
+ErrorDocument 403  403.php
+ErrorDocument 404  404.php
+ErrorDocument 500  500.php
+
