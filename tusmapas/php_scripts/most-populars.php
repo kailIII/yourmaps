@@ -2,8 +2,8 @@
 
 include("include-scripts-headless.php");
 include_once "Config.class.php";
-include_once "MapUtils.class.php";
-include_once "Pager/Pager.php";
+include("MapUtils.class.php");
+include("Pager/Pager.php");
 
 $config = Config::singleton();
 $username = $config->username;
@@ -43,43 +43,34 @@ $keyword = $_GET['keywords'];
 					
 			});
 			</script>
+	
 <? 
 	echo "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">";
 			
 	echo "<meta name=\"keywords\" content=\"".$keyword."mapas, maps, wms, cartografia, google maps, gogle\">";
-	echo "<meta name=\"Description\" content=\" Mapas asociados a la palabra clave ".$keyword."\" />"; 
+	echo "<meta name=\"Description\" content=\" Mapas más visitados de la web www.lookingformaps.com\" />"; 
 	echo "<meta name=\"Author\" content=\"Alvaro Zabala Ordóñez - azabala@gmail.com\" />"; 
-	echo "<meta name=\"Subject\" content=\"Busca ciudades y mapas de todo el mundo: : WMS, KML, KMZ, GPX\" />"; 
+	echo "<meta name=\"Subject\" content=\"Mapas más populares - Busca ciudades y mapas de todo el mundo: : WMS, KML, KMZ, GPX\" />"; 
 	echo "<meta name=\"Robots\" content=\"index, follow\" />"; 
 	//echo "<link rel=\"shortcut icon\" href=\"http://localhost/spainholydays/favicon.ico\">";
 	echo "<link rel=\"copyright\" href=\"http://www.gnu.org/copyleft/fdl.html\">";
 
-	echo "<title>Results for search ".$keyword." - Looking for maps: cities and maps of the world </title>";
+	echo "<title>Most popular maps  - Looking for maps: cities and maps of the world </title>";
 	
 	try {
 		
 		$dbh = new PDO("mysql:host=$hostname;dbname=$database", $username, $password, array(
-   			 PDO::ATTR_PERSISTENT => true
+   		 PDO::ATTR_PERSISTENT => true
 		));
 //		$statement = $dbh->query("select * from WMS_SERVICES where match(service_title,service_abstract, keywords_list, layer_names, layer_titles) against ('".$keyword."') IN NATURAL LANGUAGE MODE");
 		
 		$dbh->query("SET CHARACTER SET utf8");
-		//FIXME Review the query, sometimes returns duplicates
-		/**
-        there werent duplicates. the reason was that some keywords contained others: 'andalucia' and 'fuentes de andalucia'. 
-        If a service have two keywords like that, it was listed two times.
-        
-        We must do a union with two queries:
-        
-        	select * from WMS_SERVICES, Wms_Keywords, Keywords_Services where Keywords_Services.fk_wms_id = WMS_SERVICES.pk_id and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Wms_Keywords.text like '%andalucia%' group by WMS_SERVICES.pk_id
-		 
-		and
 		
-			select * from KML_SERVICES,Wms_Keywords, Keywords_Services where Keywords_Services.fk_wms_id = KML_SERVICES.pk_gid and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Keywords_Services.service_type = 'KML' and Wms_Keywords.text like 'Sant Feliu De Guixols' group by PK_GID
-		 */
-		//FIXME En vez de text en la where no se deberia utilizar frienlyurl-txt??
-		$query = "select WMS_SERVICES.pk_id, friendly_url, contact_organisation, service_url, service_title, service_abstract, xmin, ymin, xmax, ymax, Wms_Keywords.pk_id, Wms_Keywords.text, Wms_Keywords.friendly_url_text, Wms_Keywords.computed, Keywords_Services.fk_keyword_id, Keywords_Services.fk_wms_id, Keywords_Services.service_type from WMS_SERVICES, Wms_Keywords, Keywords_Services where Keywords_Services.fk_wms_id = WMS_SERVICES.pk_id and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Keywords_Services.service_type = 'WMS' and (Wms_Keywords.friendly_url_text like '".$keyword."' or Wms_Keywords.text like '".$keyword."' or service_title like '%".$keyword."%' or service_abstract like '%".$keyword."%' )group by WMS_SERVICES.PK_ID".
-		" union all select pk_gid, friendly_url, origen, url_origen, document_name, description, xmin, ymin, xmax, ymax, Wms_Keywords.pk_id, Wms_Keywords.text, Wms_Keywords.friendly_url_text, Wms_Keywords.computed, Keywords_Services.fk_keyword_id, Keywords_Services.fk_wms_id, Keywords_Services.service_type  from KML_SERVICES , Wms_Keywords, Keywords_Services where Keywords_Services.fk_wms_id = KML_SERVICES.pk_gid and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Keywords_Services.service_type = 'KML' and ( Wms_Keywords.friendly_url_text like '".$keyword."'  or Wms_Keywords.text like '".$keyword."' or document_name like '%".$keyword."%' or description like '%".$keyword."%') group by PK_GID";
+		$query = "SELECT * FROM (SELECT pk_id, friendly_url, contact_organisation, service_url, service_title, service_abstract, xmin, ymin, xmax, ymax, COUNTER ".
+		"FROM WMS_SERVICES ORDER BY COUNTER DESC LIMIT 10) AS WMS UNION ALL ".
+		"SELECT * FROM (SELECT pk_gid, friendly_url, origen, url_origen, document_name, ".
+		"description, xmin, ymin, xmax, ymax, COUNTER FROM KML_SERVICES ORDER BY ".
+		"COUNTER DESC  LIMIT 10)AS KML ORDER BY COUNTER DESC";
 		
 		$statement = $dbh->query($query);
 	?>	
@@ -92,40 +83,20 @@ $keyword = $_GET['keywords'];
 		
 		<div class="container">
 	<?	
-		if($statement->execute()){
-			$numResults = $statement->rowCount();
-		
-			$params = array("totalItems" => $numResults,
-							"perPage" => 5,
-							"delta" => 2,
-							"mode" => "Sliding");
-			$pagerFactory = new Pager();
-			$pager = & $pagerFactory->factory($params);
+		if($statement){
 			
-			$links = $pager->getLinks();
-			
-
-			// offset setup
-			list($from, $to) = $pager->getOffsetByPageId();
-			$from = $from - 1;
-			$perPage = $params['perPage'];
-			
-			// 2nd query based on 1st with LIMIT – this will be displaying data per page
-			$stmt2 = $dbh->query($query. " LIMIT ".$from.", ".$to);
-			$stmt2->execute();
 	?>
 	
 			<div class="span-24 last" id="search-result-message" >
 						<p class="added">
-						Mapas relacionados con la búsqueda <strong><i><?=$keyword?></i></strong>. <?= $numResults?> resultados.
+						Los 20 mapas más visitados de Looking4Maps.
 						</p>
 			</div>
 				
 			<div class="span-20">
 					<ul id="search-results">
 	<?		
-			if($numResults > 0){
-				while ($r = $stmt2->fetch()){
+				while ($r = $statement->fetch()){
 					$title = $r['service_title'];
 					$serviceUrl = $r['service_url'];
 					$abstract = $r['service_abstract'];
@@ -220,14 +191,6 @@ $keyword = $_GET['keywords'];
 		        
 		       echo "</ul>";
 		       echo $links["all"];
-			}else{
-		?>
-				<div class='highlight large'>No se han encontrado resultados para el término buscado</div>
-				<div class='large'>Ahora mismo, estos son los mapas que despiertan mayor interés en Looking4Maps.</div>
-		<?
-				include("most-populars-widget.php");	
-			
-				
 			}
 		 ?>   	
 		      </div><!-- span-20 -->
@@ -249,15 +212,15 @@ $keyword = $_GET['keywords'];
 		      </div>
 		      </div><!-- container -->
 		   <?
-//		        include("keywords-widget.php");
-//				include("producer-widget.php");
+		        include("keywords-widget.php");
+				include("producer-widget.php");
 				include("tailer-widget.php");
 			?>	
 <?
-		}else{
-			echo "problemas con la bbdd";
-		}
 }catch(PDOException $e){
 	echo $e->getMessage();
 }
 ?>
+
+
+

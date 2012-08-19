@@ -1,6 +1,4 @@
 <?php
-
-	
 	$requiredMap = $_GET['mapa'];
 	
 	include_once "Config.class.php";
@@ -19,9 +17,6 @@
 		 
 		$dbh->query("SET CHARACTER SET utf8");
 		
-		
-		
-	
 		
 		$statement = $dbh->query("SELECT service_url,friendly_url, '' as kml_content, wms_version, xmin, ymin, xmax, ymax, keywords_list, service_title, service_abstract, contact_organisation, layer_names, layer_titles, crs, is_queryable, wms_version, 'WMS' as type FROM WMS_SERVICES where friendly_url = '".$requiredMap."' UNION ALL SELECT url_origen,friendly_url, kml_content, '' as wms_version, xmin, ymin, xmax, ymax, '', document_name, description, origen, '', '','EPSG:4326',1,'','KML' as type FROM KML_SERVICES where friendly_url = '".$requiredMap."'");
 		
