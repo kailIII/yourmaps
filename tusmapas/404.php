@@ -2,7 +2,7 @@
 
 	require_once $_SERVER["DOCUMENT_ROOT"]."/php_scripts/".'Config.class.php';
 	
-	include("php_scripts/include-scripts-headless.php");
+	include($_SERVER["DOCUMENT_ROOT"]."/php_scripts/include-scripts-headless.php");
 	
 	
 	
@@ -93,22 +93,16 @@
 					</script>
 				</div>
 			</div>
-			
-			<script>
-						function openLoginDialog(){
-							$('#login_dialog').dialog('open');
-						}
-			</script>
-			
+			<br></br>	
 			<div class="container"> 
 				
-				<div class="span-8 preppend-3" id="introduction">
-					<h2 class="left">
-						Error 404
-					</h2>
-				</div>
-				
+<!--				<div class="span-8 preppend-3" id="introduction">-->
+<!--					-->
+<!--				</div>-->
 				<div class="span-24 last">
+						<h2 class="left">
+						Error 404
+						</h2>
 						<p class="alert large loud">
 						<br></br>La página que busca no se encuentra alojada en el servidor de Looking4Maps. 
 							Por favor, revise su enlace, o bien vuelva a la <a href="/">página de inicio </a>
@@ -116,6 +110,13 @@
 							su <a  href="<?=$loginUrl?>" >cuenta de Facebook</a>
 						</p>
 				</div>
+				<div class="span-24 last">
+				<?php 
+					include($_SERVER["DOCUMENT_ROOT"]."/php_scripts/".'adsense.php');
+				?>
+				</div>
+				
+				
 			</div><!-- container -->
 
 <?
