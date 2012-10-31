@@ -342,7 +342,8 @@ try {
 							
 								
 								<div class="span-2 last">
-									<a href="mapamaximizado.php?mapa=<?=$requiredMap?>" target="_blank" class="maximizar_mapa"  title="Pantalla completa" > </a>
+<!--										<a href="mapamaximizado.php?mapa=<?=$requiredMap?>" target="_blank"  title="Pantalla completa" >Pantalla completa</a>-->
+									<a href="mapamaximizado.php?mapa=<?=$requiredMap?>" target="_blank" class="maximizar_mapa"  title="Pantalla completa" ></a>
 								</div>
 								
 								<div id="map-container" class="span-15 last">
@@ -490,7 +491,7 @@ if($user == null){
 								<input type="button" 
 									class="large blue button" 
 									value="+ Mapas de la zona" 
-									onClick="goMapsAroundMe()" />
+									onClick="goMapsAroundMe(<?=$xmin?>,<?=$ymin?>,<?=$xmax?>,<?=$ymax?>)" />
 						</div><!-- span-8 -->
 		</div><!-- container -->
 				
