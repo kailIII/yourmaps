@@ -124,7 +124,14 @@ class KmlMap {
 		$this->gid = -1;						 
 	}
 	
-	
+	/*
+	 * a veces bbox almacena un valor null, cuando xmin, ymin, xmax, ymax
+	 * tienen valores.
+	 * 
+	 * Hay que ver por qué, mientras tanto esta consulta lo arregla
+	 
+	 UPDATE KML_SERVICES SET BBOX = GeomFromText('POLYGON((xmin ymin, xmax, ymin, xmax, ymax, xmin, ymax, xmin, ymin)') where BBOX is null
+	 */
 	public function save($pdo){
 		if(! $this->exist($pdo)){
 			

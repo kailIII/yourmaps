@@ -282,12 +282,13 @@ class KmlReader implements IMapReader {
 					if($name == null)
 						$name = "";
 					
-					//FIXME REVISAR: Folder[1] es ikimap, puede petar en wikiloc
-					
 					$folders = $xml->xpath('//default:Folder');
 					for($i = 0; $i < sizeof($folders); $i ++){
-						$name .= $folders[$i]->name." ";
-						$description .= $folders[$i]->description." ";
+						if(strpos($folders[$i]->name, "Mapas www.ikiMap.com") === false)
+						{
+							$name .= $folders[$i]->name." ";
+							$description .= $folders[$i]->description." ";	
+						}
 					}
 						
 					if($name == null)
@@ -301,7 +302,7 @@ class KmlReader implements IMapReader {
 						throw new KmlWithoutCoordinatesException("Documento KML sin PlaceMarks.");
 					}
 					
-					if(($description == null || description == "") && sizeof($placeMarks) == 1){
+					if(($description == null || $description == "") && sizeof($placeMarks) == 1){
 						$description = $placeMarks[0]->description;
 					}else if($description == null && sizeof($placeMarks) == 1)  {
 						for($j = 0; $j < sizeof($placeMarks); $j++){
@@ -334,7 +335,7 @@ class KmlReader implements IMapReader {
 						if(! $kmlMap->exist($dbh)){
 							$kmlMap->save($dbh);
 						}else{
-							throw new MapAlreadyExistException($kmlFile." already exist");
+							throw new MapAlreadyExistException($url." already exist");
 						}
 					}
 						
@@ -351,35 +352,36 @@ class KmlReader implements IMapReader {
 							
 						$keywords = array();
 							
-						foreach ($entities as $type => $values) {
-	
-							if($type == "Organization" || $type  == "Company"  || $type == "Industry Term" || $type == "Phone Number"  )
-							continue;
-	
-							foreach ($values as $valueItem) {
-								$mapKeyword = new MapKeyword($valueItem, true);
-									
-								if($dbh != null){
-									if(! $mapKeyword->exist($dbh)){
-										$mapKeyword->save($dbh);
-									}
-	
-									$relationship = new MapsKeywordRelationship($mapKeyword->getGid(), $kmlMap->getGid(), "KML");
-									if(!$relationship->exist($dbh)){
-										$relationship->save($dbh);
-									}
-	
-									unset($relationship);
-								}//if persist
-									
-								array_push($keywords, $mapKeyword);
-									
-								unset($mapKeyword);
-									
-									
-							}//foreach valueItem
-						}//foreach entities
-						
+						if(is_array($entities)){
+							foreach ($entities as $type => $values) {
+		
+								if($type == "Organization" || $type  == "Company"  || $type == "Industry Term" || $type == "Phone Number"  )
+								continue;
+		
+								foreach ($values as $valueItem) {
+									$mapKeyword = new MapKeyword($valueItem, true);
+										
+									if($dbh != null){
+										if(! $mapKeyword->exist($dbh)){
+											$mapKeyword->save($dbh);
+										}
+		
+										$relationship = new MapsKeywordRelationship($mapKeyword->getGid(), $kmlMap->getGid(), "KML");
+										if(!$relationship->exist($dbh)){
+											$relationship->save($dbh);
+										}
+		
+										unset($relationship);
+									}//if persist
+										
+									array_push($keywords, $mapKeyword);
+										
+									unset($mapKeyword);
+										
+										
+								}//foreach valueItem
+							}//foreach entities
+						}
 						unset($entities);
 					}catch(OpenCalaisException $e){
 					}
@@ -408,27 +410,28 @@ class KmlReader implements IMapReader {
 						));
 						
 						
-							
-						foreach ($postalCodes as $code) {
-	
-							$mapKeyword = new MapKeyword($code->placeName, true);
-	
-							if($dbh != null){
-								if(! $mapKeyword->exist($dbh)){
-									$mapKeyword->save($dbh);
-								}
-	
-								$relationship = new MapsKeywordRelationship($mapKeyword->getGid(), $kmlMap->getGid(), "KML");
-								if(!$relationship->exist($dbh)){
-									$relationship->save($dbh);
-								}
-							}//if persist
-	
-							array_push($keywords, $mapKeyword);
-	
-							unset($mapKeyword);
-						}//foreach
-					}catch(Services_GeoNames_Exception $e){
+						if(is_array($postalCodes)){	
+							foreach ($postalCodes as $code) {
+		
+								$mapKeyword = new MapKeyword($code->placeName, true);
+		
+								if($dbh != null){
+									if(! $mapKeyword->exist($dbh)){
+										$mapKeyword->save($dbh);
+									}
+		
+									$relationship = new MapsKeywordRelationship($mapKeyword->getGid(), $kmlMap->getGid(), "KML");
+									if(!$relationship->exist($dbh)){
+										$relationship->save($dbh);
+									}
+								}//if persist
+		
+								array_push($keywords, $mapKeyword);
+		
+								unset($mapKeyword);
+							}//foreach
+						}
+						}catch(Services_GeoNames_Exception $e){
 					}
 				
 						
