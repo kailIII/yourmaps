@@ -1,9 +1,9 @@
 <?php
-
 include("include-scripts-headless.php");
 include_once "Config.class.php";
 include_once "MapUtils.class.php";
 include_once "Pager/Pager.php";
+include_once  $_SERVER["DOCUMENT_ROOT"]."/php_scripts/simple_html_dom/simple_html_dom.php";
 
 $config = Config::singleton();
 $username = $config->username;
@@ -87,12 +87,16 @@ $keyword = $_GET['keywords'];
 		
 		<body> 
 			<?php include("menu-header.php")?>
-			<!-- FIXME Add a BREADCRUMB -->
+			<!-- FIXME Add a BREADCRUMB 
+			Añadir también cuadro de entrada de texto para hacer otra búsqueda
+			
+			
+			-->
 		
 		
 		<div class="container">
 	<?	
-		if($statement->execute()){
+		if($statement){
 			$numResults = $statement->rowCount();
 		
 			$params = array("totalItems" => $numResults,
@@ -111,8 +115,8 @@ $keyword = $_GET['keywords'];
 			$perPage = $params['perPage'];
 			
 			// 2nd query based on 1st with LIMIT – this will be displaying data per page
-			$stmt2 = $dbh->query($query. " LIMIT ".$from.", ".$to);
-			$stmt2->execute();
+//			$stmt2 = $dbh->query($query. " LIMIT ".$from.", ".$to);
+			$stmt2 = $dbh->query($query. " LIMIT ".$from.", ".$perPage);
 	?>
 	
 			<div class="span-24 last" id="search-result-message" >
@@ -129,6 +133,10 @@ $keyword = $_GET['keywords'];
 					$title = $r['service_title'];
 					$serviceUrl = $r['service_url'];
 					$abstract = $r['service_abstract'];
+					
+					$abstract = str_get_html($abstract)->plaintext;
+					
+					
 					$friendlyUrl = $r['friendly_url'];	
 					
 					

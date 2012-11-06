@@ -102,7 +102,7 @@ try {
 			$perPage = $params['perPage'];
 			
 			// 2nd query based on 1st with LIMIT – this will be displaying data per page
-			$stmt2 = $dbh->query($sql. " LIMIT ".$from.", ".$to);
+			$stmt2 = $dbh->query($sql. " LIMIT ".$from.", ".$perPage);
 			$stmt2->execute();
 	?>
 	

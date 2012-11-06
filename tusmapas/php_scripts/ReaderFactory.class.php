@@ -30,7 +30,7 @@ class ReaderFactory {
 	public static function createMapReader($url){
 		$contentType = Util::get_url_mime_type($url);
 //application/vnd.ogc.se_xml;charset=UTF-8
-		if($contentType == "application/vnd.google-earth.kml+xml"){
+		if($contentType == "application/vnd.google-earth.kml+xml" || $contentType == "application/vnd.google-earth.kml+xml; charset=UTF-8"){
 			return new KmlReader();	
 					
 		}else if($contentType == "application/vnd.google-earth.kmz"){

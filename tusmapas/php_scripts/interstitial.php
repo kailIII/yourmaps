@@ -38,7 +38,7 @@
 ?>
 			 
 			
-			 var count = 5;
+			 var count = 10;
 			 countdown = setInterval(function(){
 				 if(count >= 0){
 			    	$("h3.countdown").html(count + " segundos restantes...");

@@ -94,7 +94,7 @@ class WmsMap {
 			return $stmt;		
 	}
 
-
+	
 	public function save($pdo){
 		if(! $this->exist($pdo)){
 			
@@ -284,32 +284,36 @@ class WmsMap {
 		//$entities is a key - value array, where
 		//key is the entity type (person, url, place, etc)
 		//and value is an array with many values as string
+		
+		if(is_array($entities)){
 
-		foreach ($entities as $type => $values) {
-			if($type == "Organization" || $type  == "Company" || $type == "URL" || $type == "IndustryTerm"  )
-				continue;
-			foreach ($values as $valueItem) {
-				
-				$mapKeyword = new MapKeyword($valueItem, true);
-				
-				if($pdo != null){
-					if(! $mapKeyword->exist($pdo)){
-						$mapKeyword->save($pdo);
+			foreach ($entities as $type => $values) {
+				if($type == "Organization" || $type  == "Company" || $type == "URL" || $type == "IndustryTerm"  )
+					continue;
+				foreach ($values as $valueItem) {
+					
+					$mapKeyword = new MapKeyword($valueItem, true);
+					
+					if($pdo != null){
+						if(! $mapKeyword->exist($pdo)){
+							$mapKeyword->save($pdo);
+						}
+	
+						$relationship = new MapsKeywordRelationship($mapKeyword->getGid(), $this->gid, "WMS");
+						if(!$relationship->exist($pdo)){
+							$relationship->save($pdo);
+						}
+						unset($relationship);
 					}
-
-					$relationship = new MapsKeywordRelationship($mapKeyword->getGid(), $this->gid, "WMS");
-					if(!$relationship->exist($pdo)){
-						$relationship->save($pdo);
-					}
-					unset($relationship);
-				}
-				
-				array_push($solution, $mapKeyword);
-
-				unset($mapKeyword);
-				
-			}//foreach valueItem
-		}//foreach entities
+					
+					array_push($solution, $mapKeyword);
+	
+					unset($mapKeyword);
+					
+				}//foreach valueItem
+			}//foreach entities
+			
+		}
 			
 		return $solution;	
 	}
@@ -340,30 +344,34 @@ class WmsMap {
 					    'radius'  => $radius, // 10km
 					    'maxRows' => 10
 		));
+		
+		
+		if(is_array($postalCodes)){
 			
-		foreach ($postalCodes as $code) {
-
-
-			$mapKeyword = new MapKeyword($code->placeName, true);
-
-			if($pdo != null){
-				if(! $mapKeyword->exist($pdo)){
-					$mapKeyword->save($pdo);
-				}
+			foreach ($postalCodes as $code) {
 	
-				$relationship = new MapsKeywordRelationship($mapKeyword->getGid(), $this->gid, "WMS");
-				if(!$relationship->exist($pdo)){
-					$relationship->save($pdo);
-				}
-				unset($relationship);
+	
+				$mapKeyword = new MapKeyword($code->placeName, true);
+	
+				if($pdo != null){
+					if(! $mapKeyword->exist($pdo)){
+						$mapKeyword->save($pdo);
+					}
+		
+					$relationship = new MapsKeywordRelationship($mapKeyword->getGid(), $this->gid, "WMS");
+					if(!$relationship->exist($pdo)){
+						$relationship->save($pdo);
+					}
+					unset($relationship);
+					
+				}	
 				
-			}	
-			
-			array_push($solution, $mapKeyword);
-			
-			unset($mapKeyword);
-
-		}//foreach
+				array_push($solution, $mapKeyword);
+				
+				unset($mapKeyword);
+	
+			}//foreach
+		}
 		return $solution;
 	}
 

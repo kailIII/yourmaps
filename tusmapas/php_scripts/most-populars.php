@@ -67,10 +67,10 @@ $keyword = $_GET['keywords'];
 		$dbh->query("SET CHARACTER SET utf8");
 		
 		$query = "SELECT * FROM (SELECT pk_id, friendly_url, contact_organisation, service_url, service_title, service_abstract, xmin, ymin, xmax, ymax, COUNTER ".
-		"FROM WMS_SERVICES ORDER BY COUNTER DESC LIMIT 10) AS WMS UNION ALL ".
+		"FROM WMS_SERVICES ORDER BY COUNTER DESC LIMIT 20) AS WMS UNION ALL ".
 		"SELECT * FROM (SELECT pk_gid, friendly_url, origen, url_origen, document_name, ".
 		"description, xmin, ymin, xmax, ymax, COUNTER FROM KML_SERVICES ORDER BY ".
-		"COUNTER DESC  LIMIT 10)AS KML ORDER BY COUNTER DESC";
+		"COUNTER DESC  LIMIT 20)AS KML ORDER BY COUNTER DESC";
 		
 		$statement = $dbh->query($query);
 	?>	
@@ -89,7 +89,7 @@ $keyword = $_GET['keywords'];
 	
 			<div class="span-24 last" id="search-result-message" >
 						<p class="added">
-						Los 20 mapas más visitados de Looking4Maps.
+						Los mapas más visitados de Looking4Maps.
 						</p>
 			</div>
 				
@@ -102,6 +102,7 @@ $keyword = $_GET['keywords'];
 					$abstract = $r['service_abstract'];
 					$friendlyUrl = $r['friendly_url'];	
 					
+					$counter = $r['COUNTER'];
 					
 					$serviceType = $r['service_type'];//WMS, KML
 					
@@ -159,7 +160,7 @@ $keyword = $_GET['keywords'];
 								<a href="mapa.php?mapa=<?= $friendlyUrl?>" 
 								   title="<?= $title ?>" 
 								   id="trail-title"><?= $title?>
-								 </a>
+								 </a> - <?= $counter?> visitas	</br>
 							</h3>
 				
 							<p class="description">

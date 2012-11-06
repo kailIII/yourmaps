@@ -155,6 +155,40 @@ try {
 
 	     poll();
      }
+
+
+
+    function addGoolZoom(){
+    	resetDialog2();
+		showSendingMap2();
+
+		var user = '<?=$user != null?$user->getUserName():"anonymous"?>';
+
+		  //first we sent the request with maps
+		 $.ajax({
+			  type: "POST",
+			  url: "api/import-goolzoom-backend.php",
+			  data: "user="+user+"&processid="+processId,
+			  success: function( data ) {
+						hideSendingMap2();
+						var messageArray = data;
+						var messageString = messageArray['message'];
+						if(undefined != messageString){
+							$("#messageBox2").html("<p>"+messageString+"</p");
+						}
+						$("#messageBox2").show();
+						//resetDialog2();
+						     
+					},//function data
+					error:function(data, textStatus, errorThrown){
+						hideSendingMap2();
+						$("#messageBox2").html("<p>"+textStatus+"</p");
+						$("#messageBox2").show();
+					}
+	     });//ajax
+
+	     poll();
+     }
   
   	
 
@@ -173,7 +207,7 @@ try {
 		 $.ajax({
 			  type: "POST",
 			  url: "api/addmap-batch-backend.php",
-			  data: "maps="+servers+"&user="+user+"&processid="+processId,
+			  data: "maps="+encodeURIComponent(servers)+"&user="+user+"&processid="+processId,
 			  success: function( data ) {
 						hideSendingMap2();
 						//var messageArray = eval('(' + data + ')');
@@ -220,7 +254,7 @@ try {
 				  dataType: "json", 
 				  complete: poll 
 			   }); 
-		   }, 5000); 
+		   }, 30000); 
 
 	}
 
@@ -316,15 +350,22 @@ monitorizar (WMS ó KML)</label></div>
 	id="service_to_index" rows="15" cols="45"></textarea></div>
 </form>
 <div class="span-8"><br />
-<input type="button" class="green large button" value="Añadir mapas"
+<input type="button" class="green medium button" value="Añadir mapas"
 	onClick="javascript:addMaps()" />
 </div>
 
 <div class="span-8"><br />
 	<input type="button"  
-		class="red large button" 
+		class="red medium button" 
 		value="Importar Ikimap" 
 		onClick="javascript:addIkimaps()" />
+</div>
+
+<div class="span-8"><br />
+	<input type="button"  
+		class="blue medium button" 
+		value="Importar GoolZoom" 
+		onClick="javascript:addGoolZoom()" />
 </div>
 
 <div id="addmap_batch_dialog" title="Añadiendo nuevo lote de mapas"

@@ -1,4 +1,13 @@
 <?php
+
+//use another method to disallow downloads 
+//	$ref = $_SERVER['HTTP_REFERER'];
+//	if (stripos($ref, 'lookingformaps.com') !== FALSE || !$ref){
+//	    header( 'Location: http://www.lookingformaps.com/403.php' );
+//	    exit;
+//	}
+	
+
 	$requiredMap = $_GET['mapa'];
 	
 	include_once "Config.class.php";
@@ -49,6 +58,8 @@
 			
 			if($type == "KML"){
 				$kmlContent = $row['kml_content'];
+				header('Content-type: application/vnd.google-earth.kml+xml');
+				header('Content-Disposition: attachment; filename='.$serviceTitle.'.kml');
 				echo $kmlContent;
 			}else if($type == "WMS"){
 				$xcenter = ( $xmin + $xmax ) / 2;

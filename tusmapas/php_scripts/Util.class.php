@@ -59,7 +59,7 @@ class Util {
 		return "tag5";
 		if ($result <= 10)
 		return "tag5";
-		return $result <= 50 ? "tag6" : "";
+		return $result <= 50 ? "tag6" : "tag7";
 	}
 
 
