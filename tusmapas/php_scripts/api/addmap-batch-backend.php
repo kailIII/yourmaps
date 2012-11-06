@@ -19,7 +19,7 @@ $hostname = $config->hostname;
 $password = $config->password;
 $database = $config->database;
 
-$mapsList = $_POST['maps'];
+$mapsList = rawUrlDecode($_POST['maps']);
 $user = $_POST['user'];
 
 $processId = $_POST['processid'];
