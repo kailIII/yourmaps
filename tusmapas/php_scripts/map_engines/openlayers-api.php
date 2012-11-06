@@ -92,7 +92,12 @@
 <script type="text/javascript">
 //todo esto se enviara según el tipo de mapa sea kml o wms. ahorramos memoria y red
 			var map;
-			
+<?
+			if($type == "KML"){
+?>
+
+
+
 			function addFrameKml(domParent, friendlyUrl, serviceTitle, height, width, xmin, ymin, xmax, ymax){
 
 				//compute a bounding box
@@ -288,7 +293,11 @@
 
 		    map.addControl(new OpenLayers.Control.Permalink("permalink"));
 			        
-			map.zoomToExtent(layerBounds);
+//			map.zoomToExtent(layerBounds);
+//			var boundsData = kml.getDataExtent();
+//			map.zoomToExtent(boundsData);
+//			map.zoomToMaxExtent();
+		    map.zoomToExtent(layerBounds);
 		}
 
 
@@ -299,11 +308,17 @@
             var map = layer.map;
 
 			//var str = selectedFeature.attributes.name + " " + selectedFeature.attributes.description;
-			var str = selectedFeature.attributes.name;            
+//			var str = selectedFeature.attributes.name;  
+			var str;
+			for(var index in selectedFeature.attributes){
+				str += (index+":"+selectedFeature.attributes[index])+"<br/>";
+			}
+
+			          
             var popup = new OpenLayers.Popup.FramedCloud("Looking for maps", 
 			                			feature.geometry.getBounds().getCenterLonLat(),
 			                			new OpenLayers.Size(100,100),
-			                			"<h4>"+ str + "</h4>",
+			                			"<h5>"+ str + "</h5>",
 			                			null, true, onPopupClose);
             feature.popup = popup;
             map.addPopup(popup);
@@ -324,7 +339,9 @@
             select.unselectAll();
         }
         	
-
+<?
+	}else{
+?>
 		
 
 			
@@ -744,12 +761,15 @@
 				
 				//TODO FIXME Crear un algoritmo que diga si dibujar el rectangulo del bbox o no
 				//en funcion del nivel de zoom.
-				
-	drawBoundingBox(map, bounds);
-
-		        map.zoomToExtent(bounds);
+				drawBoundingBox(map, bounds);
+//		        map.zoomToExtent(bounds);
+				map.zoomToMaxExtent();
 
 			}
+
+	<?
+	}//else if $type
+	?>
 
 			/**
 				Its useful draw bounding box over base map to ensure visibility for certain
@@ -784,17 +804,9 @@
 
 
 			
-			function goMapsAroundMe(){
-				var bounds = map.getExtent();
-				bounds = bounds.transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-				var xmin = bounds.left;
-				var xmax = bounds.right;
-				var ymin = bounds.bottom;
-				var ymax = bounds.top;
-				
-				window.location.href="maps-around.php?xmin="+xmin+"&xmax="+xmax+"&ymin="+ymin+"&ymax="+ymax;
-
-
+			function goMapsAroundMe(xmin, ymin, xmax, ymax){
+				//window.location.href="maps-around.php?xmin="+xmin+"&xmax="+xmax+"&ymin="+ymin+"&ymax="+ymax;
+				window.open("maps-around.php?xmin="+xmin+"&xmax="+xmax+"&ymin="+ymin+"&ymax="+ymax,'Maps around '+xmin+","+ymin+","+xmax+","+ymax);
 			}
 
 		
