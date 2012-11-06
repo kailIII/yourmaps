@@ -80,7 +80,24 @@
 		
 		<body>
 			<?php include("menu-header.php")?>
-
+		
+			<div class="container">
+				<div class="span-24 last">
+					<script type="text/javascript"><!--
+						google_ad_client = "ca-pub-7845495201990236";
+						/* lookingformaps2 */
+						google_ad_slot = "9961918851";
+						google_ad_width = 728;
+						google_ad_height = 90;
+						//-->
+					</script>
+					
+					<script type="text/javascript"
+					src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+					</script>
+					
+				</div>
+			</div>
 			
 			<div class="container"> 
 				<div class="span-11" id="search-box">
@@ -146,6 +163,23 @@
 				</div>
 				
 			</div><!-- container -->
+			
+			<div class="container">
+				<div class="span-24 last">
+					<?php 	include("most-popular-resume-widget.php");?>
+				</div>
+				
+<!--				<div class="span-12 last">-->
+<!--					Apuntate a nuestra <strong><a href="http://eepurl.com/qkYKP" target="_blank">lista de correo</a></strong> y recibe toda la documentación del curso "Bases de datos espaciales con PostGIS y MySQL"-->
+<!--					<input type="button" -->
+<!--						    class="medium green button" -->
+<!--							value="Recibe el curso de PostGIS"-->
+<!--							onClick="javascript:window.location.href='http://eepurl.com/qkYKP'"-->
+<!--							style="font-size:24px"-->
+<!--					/><img class="aligncenter" alt="Apuntate a nuestra lista de correo y recibirás el material del curso sobre PostGIS y Bases de Datos Espaciales" src="/resources/images/stock_elephant_128.png">-->
+<!--				</div>-->
+			</div>
+			
 			<div class="container">
 				<div class="span-24 last">
 <?
