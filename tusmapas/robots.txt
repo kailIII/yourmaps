@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /php_scripts/database.ini
+Disallow: /php_scripts/keywords-search-jquery.php
+Disallow: /php_scripts/keywords-search.php
