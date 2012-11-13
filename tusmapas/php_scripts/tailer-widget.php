@@ -92,4 +92,12 @@
 			<a href="/">www.lookingformaps.com</a>: miles de mapas en la red - © 2011
 		</center>
 	</div>
+	
+	<div style="z-index:10000;cursor:pointer;opacity:0.85;bottom:-24px;font-size: 18px;color:white;padding: 10px;position: fixed;right: 0;" 
+		class="large red button"
+		onClick="javascript:window.location.href='http://eepurl.com/qkYKP'"
+	>
+		
+			<b>Recibe GRATIS <br/>nuestro curso de PostGIS</b></a> 
+	</div>
 </div>
