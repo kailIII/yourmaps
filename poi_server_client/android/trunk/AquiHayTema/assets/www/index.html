@@ -1,0 +1,160 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+	<title>Aquí Hay Tema</title> 
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1"> 
+
+	<link rel="stylesheet" href="css/jquery.mobile-1.2.0.min.css" />
+	<link rel="stylesheet" href="css/jquery.mobile.structure-1.2.0.min.css" />
+	<link rel="stylesheet" href="css/jquery.mobile.theme-1.2.0.min.css" />
+	<link rel="stylesheet" href="css/aquihaytema.css" />
+	<script src="js/jquery-1.8.2.min.js"></script>
+	<script src="js/jquery.mobile-1.2.0.min.js"></script>
+	<script src="js/cordova-2.2.0.js"></script>
+	<script src="js/aquihaytema.js"></script>
+
+	
+    <script type="text/javascript" charset="utf-8">
+    
+   
+
+    // Call onDeviceReady when Cordova is loaded.
+    //
+    // Esta funcion se ejecuta ante el 'document has loaded' pero puede
+    // que cordova no. Cuando lo este, llamara a `deviceready`.
+    // Se ejecuta UNA UNICA VEZ al cargar el body por primera vez
+    // Se ejecuta DESPUES DEL INIT de cada pagina del .js
+    // Se ejecuta DESPUES DEL LIVE de cada pagina
+    function onLoad() {
+        document.addEventListener("deviceready", onDeviceReady, false);
+        
+    }
+
+    // Cordova is loaded and it is now safe to call Cordova methods
+    //
+    function onDeviceReady() {
+        // Register the event listener
+        document.addEventListener("backbutton", onBackKeyDown, false);
+    }
+
+    // Queremos anular el boton de retroceso o que cierre la aplicacion?
+    function onBackKeyDown() {
+    	//Cierra la aplicacion
+    	if($.mobile.activePage.is('#ayuda') || $.mobile.activePage.is('#donde_hay') || $.mobile.activePage.is('#aqui_hay')){
+    		navigator.app.exitApp();
+    	}
+    	else
+    	{
+    		navigator.app.backHistory();
+    	}
+    }
+
+    </script>
+	
+	
+</head> 
+
+<body onload="onLoad()"> 
+
+	<!--  Pagina de ayuda que tiene la bienvenida y una descripcion rapida de como usar la aplicacion -->
+	<div data-role="page" id="ayuda" data-theme="b" data-content-theme="b">
+		<header data-role="header"  data-position="fixed">
+			<h1>Ayuda</h1>
+		</header><!-- /header -->
+	
+		<footer data-role="footer" data-position="fixed">
+			<div data-role="navbar">
+				<ul>
+					<li><a href="#donde_hay" data-iconpos="top" data-icon="search">Dónde?</a></li>
+					<li><a href="#aqui_hay" data-iconpos="top" data-icon="check">Aqui!</a></li>
+					<li><a href="#ayuda" class="ui-btn-active ui-state-persist" data-iconpos="top" data-icon="info">Ayuda</a></li>
+				</ul>
+			</div><!-- /navbar -->
+		</footer><!-- /footer -->
+	</div>
+
+	<!-- Pagina que muestra la lista de POIs donde hay tema -->
+	<div data-role="page" id="donde_hay" data-theme="b" data-content-theme="b">
+	
+		<header data-role="header"  data-position="fixed">
+			<h1>Listado de Puntos...</h1>
+		</header><!-- /header -->
+		
+		
+		
+		<div data-role="content">
+			
+			<ul id="listado-notas" data-role="listview" data-theme="b">
+			</ul>	
+			
+			<div id="images"></div>
+			<script>
+			
+			/*$.getJSON("http://api.flickr.com/services/feeds/photos_public.gne?tags=cat&tagmode=any&format=json&jsoncallback=?",
+        function(data){
+          $.each(data.items, function(i,item){
+              $("<img/>").attr("src", item.media.m).appendTo("#images");
+            if ( i == 3 ) return false;
+          });
+        });*/
+        
+        
+        
+			</script>
+		</div><!-- /content -->
+	
+		<footer data-role="footer" data-position="fixed">
+			<div data-role="navbar">
+				<ul>
+					<li><a href="#donde_hay" class="ui-btn-active ui-state-persist" data-iconpos="top" data-icon="search">Dónde?</a></li>
+					<li><a href="#aqui_hay" data-iconpos="top" data-icon="check">Aqui!</a></li>
+					<li><a href="#ayuda" data-iconpos="top" data-icon="info">Ayuda</a></li>
+				</ul>
+			</div><!-- /navbar -->
+		</footer><!-- /footer -->
+	</div>
+	
+	<div data-role="page" id="aqui_hay" data-theme="b" data-content-theme="b">
+		<header data-role="header"  data-position="fixed">
+			<h1>Aquí hay...</h1>
+		</header><!-- /header -->
+		
+		<div data-role="content">	
+			<form id="frmNueva" name="frmNueva">
+				<div data-role="fieldcontain" class="ui-hide-label">
+					<input type="text"
+						name="titulo" id="titulo" value="" placeholder="Titulo de la Nota" />
+				</div>
+				<div data-role="fieldcontain" class="ui-hide-label">
+					<input type="text"
+						name="fecha" id="fecha" value="" placeholder="Fecha de la Nota" />
+				</div>
+				<div data-role="fieldcontain" class="ui-hide-label">
+					<textarea name="descripcion" id="descripcion" placeholder="Descripción de la Nota..."></textarea>
+				</div>
+				<div data-role="fieldcontain" class="ui-hide-label">
+					<a href="#" data-role="button" data-icon="gear" data-iconpos="right" data-theme="e">Sacar foto</a> 
+				</div>
+				<div data-role="fieldcontain" class="ui-hide-label">
+					<a href="javascript:void(0)" id="crear" data-role="button" data-icon="check" data-iconpos="right" data-theme="a">Crear Nota</a> 
+				</div>
+			</form>
+		</div><!-- /content -->
+		
+		
+	
+		<footer data-role="footer" data-position="fixed">
+			<div data-role="navbar">
+				<ul>
+					<li><a href="#donde_hay" data-iconpos="top" data-icon="search">Dónde?</a></li>
+					<li><a href="#aqui_hay" class="ui-btn-active ui-state-persist" data-iconpos="top" data-icon="check">Aqui!</a></li>
+					<li><a href="#ayuda" data-iconpos="top" data-icon="info">Ayuda</a></li>
+				</ul>
+			</div><!-- /navbar -->
+		</footer><!-- /footer -->
+	</div>
+	
+	
+</body>
+</html>
