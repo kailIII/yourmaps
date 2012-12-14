@@ -78,9 +78,32 @@ $keyword = $_GET['keywords'];
 			select * from KML_SERVICES,Wms_Keywords, Keywords_Services where Keywords_Services.fk_wms_id = KML_SERVICES.pk_gid and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Keywords_Services.service_type = 'KML' and Wms_Keywords.text like 'Sant Feliu De Guixols' group by PK_GID
 		 */
 		//FIXME En vez de text en la where no se deberia utilizar frienlyurl-txt??
-		$query = "select WMS_SERVICES.pk_id, friendly_url, contact_organisation, service_url, service_title, service_abstract, xmin, ymin, xmax, ymax, Wms_Keywords.pk_id, Wms_Keywords.text, Wms_Keywords.friendly_url_text, Wms_Keywords.computed, Keywords_Services.fk_keyword_id, Keywords_Services.fk_wms_id, Keywords_Services.service_type from WMS_SERVICES, Wms_Keywords, Keywords_Services where Keywords_Services.fk_wms_id = WMS_SERVICES.pk_id and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Keywords_Services.service_type = 'WMS' and (Wms_Keywords.friendly_url_text like '".$keyword."' or Wms_Keywords.text like '".$keyword."' or service_title like '%".$keyword."%' or service_abstract like '%".$keyword."%' )group by WMS_SERVICES.PK_ID".
-		" union all select pk_gid, friendly_url, origen, url_origen, document_name, description, xmin, ymin, xmax, ymax, Wms_Keywords.pk_id, Wms_Keywords.text, Wms_Keywords.friendly_url_text, Wms_Keywords.computed, Keywords_Services.fk_keyword_id, Keywords_Services.fk_wms_id, Keywords_Services.service_type  from KML_SERVICES , Wms_Keywords, Keywords_Services where Keywords_Services.fk_wms_id = KML_SERVICES.pk_gid and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Keywords_Services.service_type = 'KML' and ( Wms_Keywords.friendly_url_text like '".$keyword."'  or Wms_Keywords.text like '".$keyword."' or document_name like '%".$keyword."%' or description like '%".$keyword."%') group by PK_GID";
+//		$query = "select 
+//					WMS_SERVICES.pk_id, 
+//					friendly_url, 
+//					contact_organisation, 
+//					service_url, 
+//					service_title, 
+//					service_abstract, xmin, ymin, xmax, ymax, Wms_Keywords.pk_id, Wms_Keywords.text, Wms_Keywords.friendly_url_text, Wms_Keywords.computed, Keywords_Services.fk_keyword_id, Keywords_Services.fk_wms_id, Keywords_Services.service_type from WMS_SERVICES, Wms_Keywords, Keywords_Services where Keywords_Services.fk_wms_id = WMS_SERVICES.pk_id and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Keywords_Services.service_type = 'WMS' and (Wms_Keywords.friendly_url_text like '".$keyword."' or Wms_Keywords.text like '".$keyword."' or service_title like '%".$keyword."%' or service_abstract like '%".$keyword."%' )group by WMS_SERVICES.PK_ID".
+//		" union all select pk_gid, friendly_url, origen, url_origen, document_name, description, xmin, ymin, xmax, ymax, Wms_Keywords.pk_id, Wms_Keywords.text, Wms_Keywords.friendly_url_text, Wms_Keywords.computed, Keywords_Services.fk_keyword_id, Keywords_Services.fk_wms_id, Keywords_Services.service_type  from KML_SERVICES , Wms_Keywords, Keywords_Services where Keywords_Services.fk_wms_id = KML_SERVICES.pk_gid and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and Keywords_Services.service_type = 'KML' and ( Wms_Keywords.friendly_url_text like '".$keyword."'  or Wms_Keywords.text like '".$keyword."' or document_name like '%".$keyword."%' or description like '%".$keyword."%') group by PK_GID";
 		
+		
+		 $query = "select WMS_SERVICES.pk_id, friendly_url, contact_organisation, service_url, service_title, service_abstract, xmin, ymin, xmax, ymax ".
+				  " from WMS_SERVICES, Wms_Keywords, Keywords_Services ". 
+				  "where Keywords_Services.fk_wms_id = WMS_SERVICES.pk_id and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and ". 
+					"Keywords_Services.service_type = 'WMS' and (Wms_Keywords.text like '".$keyword."' or Wms_Keywords.friendly_url_text like '".$keyword."' or ". 	 
+	     			"MATCH(service_title, service_abstract, service_url ) AGAINST( '".$keyword."' IN NATURAL LANGUAGE MODE) ".
+					") group by WMS_SERVICES.PK_ID ".
+					" union all ". 
+					" select pk_gid, friendly_url, origen, url_origen, document_name, description, xmin, ymin, xmax, ymax from KML_SERVICES , ". 
+     				" Wms_Keywords,  Keywords_Services ". 
+					" where Keywords_Services.fk_wms_id = KML_SERVICES.pk_gid and Keywords_Services.fk_keyword_id = Wms_Keywords.pk_id and ". 
+     				" Keywords_Services.service_type = 'KML' and ". 
+					" ( Wms_Keywords.text like '".$keyword."' or Wms_Keywords.friendly_url_text like '".$keyword."' or MATCH(url_origen, document_name, description ) AGAINST('".$keyword."' IN NATURAL LANGUAGE MODE) ".
+					") group by PK_GID";
+//					" ( MATCH(Wms_Keywords.text, Wms_Keywords.friendly_url_text) AGAINST('".$keyword."' IN NATURAL LANGUAGE MODE) or  MATCH(url_origen, document_name, description ) AGAINST('".$keyword."' IN NATURAL LANGUAGE MODE) ".
+//					") group by PK_GID";
+		 
 		$statement = $dbh->query($query);
 	?>	
 		</head>
@@ -119,6 +142,24 @@ $keyword = $_GET['keywords'];
 			$stmt2 = $dbh->query($query. " LIMIT ".$from.", ".$perPage);
 	?>
 	
+	
+			<div class="container">
+						<div class="span-24 last">
+							<script type="text/javascript"><!--
+					google_ad_client = "ca-pub-7845495201990236";
+					/* lookingformaps2 */
+					google_ad_slot = "9961918851";
+					google_ad_width = 728;
+					google_ad_height = 90;
+					//-->
+				</script>
+				
+				<script type="text/javascript"
+				src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+				</script>
+						
+					</div>
+			</div>
 			<div class="span-24 last" id="search-result-message" >
 						<p class="added">
 						Mapas relacionados con la búsqueda <strong><i><?=$keyword?></i></strong>. <?= $numResults?> resultados.
