@@ -10,7 +10,7 @@
 				$.mobile.defaultPageTransition = 'none';		
 				
 				// Esta funcion se ejecuta la primera vez que se carga cada pagina
-				$(document).bind('pageinit', function(){
+				$(document).bind('pageinit', function(){  
 					//console.log('page init');
 					
 				});
@@ -19,9 +19,12 @@
 				// pagina correspondiente, DESPUES del pageinit en caso de que
 				// se visualice por primera vez
 				
-				// Cada vez que se accede a "donde"
+				// Cada vez que se accede a "donde hay  pois"
 				$('#donde_hay').live('pageshow', function(){
-				
+					// No queremos que se active la busqueda de POIs si estos ya estan calculados. Si el usuario
+					// quiere obtenerlos de nuevo, solo tiene que pulsar el boton de "refrescar pois"
+					if($('#listado-notas li').length == 0)
+					{
 					// Obtenemos las coordenadas del dispositivo
 					navigator.geolocation.getCurrentPosition(
 						// Si se obtienen sin problemas, solicitamos informacion
@@ -44,7 +47,11 @@
 							self.consultarPuntosCercanos('37.38264','-5.9962951');
 						});
 					
-					 
+					}
+					else // La lista de POIs ya estaba rellena
+					{
+						// No hacemos nada
+					}
 					
 				});
 				
@@ -59,33 +66,40 @@
 				});
 			},
 			// Funcion que consulta con el Servidor de puntos
+			// VERSION POISERVER
 			consultarPuntosCercanos: function(lat, lon){
 				alert('Consultando al servidor puntos cercanos a:\n' + lat + ', ' + lon);
-				$.getJSON("http://www.juntadeandalucia.es/servicios/mapas/jara.php?lang=en&countryCode=ES&lon="
+				$.getJSON("http://www.lookingformaps.com/poiserver/index.php/poiserver/getpoisbyposition/5/"
 						+ lon 
-						+"&userId=6f85d06929d160a7c8a3cc1ab4b54b87db99f74b&version=6.2&radius=1582&lat="
+						+"/"
 						+ lat
-						+ "&layerName=sedesjaandalucia&accuracy=100",
+						+ "/90000",
 			             // Si obtenemos la respuesta del Servidor correctamente
 						 function(data){
 			        	 	//alert(data.hotspots.length);
+							/*var obj = eval ("(" + data.pois + ")");
+							alert(obj);*/
 			        	 	var lista = $('<ul>');
-			        	 	for (var i = 0; i < data.hotspots.length; i++){
-			        		 //alert(data.hotspots[i]);
-			        	 		var latDestino = data.hotspots[i].lat;
-			        	 		var lonDestino = data.hotspots[i].lon;
-			        	 		var latNumero = latDestino * 1 / 1000000;
-			        	 		var lonNumero = lonDestino * 1 / 1000000;
-							 lista.append($('<li/>').append($('<h2/>')
-									 //.text('Lat:' + latNumero + ', Lon: ' + lonNumero).append($('<BR/>')).
-									 .text(data.hotspots[i].title).append($('<BR/>')).
-									 append($('<h3/>').text('distancia: ' + data.hotspots[i].distance + ' metros'))
-									 .append('<a href="geo:'+ latNumero + ','+ lonNumero +'?z=17" target="_blank">Ver</a>')));
+			        	 	for (var i = 0; i < data.pois.length; i++){
+			        		 //
+			        	 		var latDestino = data.pois[i].lat;
+			        	 		var lonDestino = data.pois[i].long;
+			        	 		// Construimos la lista de POIs
+			        	 		// Para cada elemento, asignamos el POI como dato asociado al list item,
+			        	 		// y definimos la funcion que debe ejecutarse al hacer clic sobre el elemento
+			        	 		// Igualmente, el enlace "ver" lanza la apertura del visor de mapas.
+			        	 		 lista.append($('<li/>').data('poi',data.pois[i]).bind('vclick',function(){
+			        	 			self.verPOI($(this).data('poi'));})
+			        	 				 .attr('href','javascript:void(0)')
+			        	 				 .append($('<h2/>')
+										 .text(data.pois[i].name).append($('<BR/>')).
+										 append($('<h3/>').text('descripción: ' + data.pois[i].description))
+										 .append('<a href="geo:'+ latDestino + ','+ lonDestino +'?z=20" target="_blank">Ver</a>')));
 			        	 	};
 						
 			        	 	$('#listado-notas').empty().append(lista.children()).listview('refresh');
 			        	 	
-			        	 	self.abreMapa();
+			        	 	//self.abreMapa();
 			          
 			       		});
 				
@@ -95,6 +109,14 @@
 				console.error('Error!',err);
 				alert('Se ha producido un error: ' + err.message);
 			},
+			// Esta funcion se activa cuando seleccionamos un POI de la lista de POIs
+			// Actualiza los atributos de la pagina "info_poi" y la abre.
+			verPOI : function(poi){
+				$('#nombre_poi_val').text(poi.name);
+				// En la descripcion puede venir codigo html
+				$('#descripcion_poi_val').html(poi.description);
+				$.mobile.changePage('#info_poi');
+				},
 			abreMapa: function(){
 				//alert('intent');
 				

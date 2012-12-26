@@ -36,8 +36,19 @@
     function onDeviceReady() {
         // Register the event listener
         document.addEventListener("backbutton", onBackKeyDown, false);
+        //$(window).bind('orientationchange', _orientationHandler);
     }
 
+    /*function _orientationHandler(){
+    if(event.orientation){
+        if(event.orientation == 'portrait'){
+                    //do something
+        }
+        else if(event.orientation == 'landscape') {
+                      //do something
+        }
+      }
+    }*/
     // Queremos anular el boton de retroceso o que cierre la aplicacion?
     function onBackKeyDown() {
     	//Cierra la aplicacion
@@ -77,34 +88,18 @@
 	<!-- Pagina que muestra la lista de POIs donde hay tema -->
 	<div data-role="page" id="donde_hay" data-theme="b" data-content-theme="b">
 	
-		<header data-role="header"  data-position="fixed">
-			<h1>Listado de Puntos...</h1>
+		<!-- data-tap-toggle="false" sirve para que al pinchar en un elemento de la lista de POIs, no
+		desaparezca el header o el footer -->
+		<header data-role="header"  data-position="fixed" data-tap-toggle="false">
+			<h1>Puntos...</h1>
 		</header><!-- /header -->
 		
-		
-		
 		<div data-role="content">
-			
 			<ul id="listado-notas" data-role="listview" data-theme="b">
 			</ul>	
-			
-			<div id="images"></div>
-			<script>
-			
-			/*$.getJSON("http://api.flickr.com/services/feeds/photos_public.gne?tags=cat&tagmode=any&format=json&jsoncallback=?",
-        function(data){
-          $.each(data.items, function(i,item){
-              $("<img/>").attr("src", item.media.m).appendTo("#images");
-            if ( i == 3 ) return false;
-          });
-        });*/
-        
-        
-        
-			</script>
 		</div><!-- /content -->
 	
-		<footer data-role="footer" data-position="fixed">
+		<footer data-role="footer" data-position="fixed" data-tap-toggle="false">
 			<div data-role="navbar">
 				<ul>
 					<li><a href="#donde_hay" class="ui-btn-active ui-state-persist" data-iconpos="top" data-icon="search">Dónde?</a></li>
@@ -115,6 +110,7 @@
 		</footer><!-- /footer -->
 	</div>
 	
+	<!-- Pagina para dar de alta un punto -->
 	<div data-role="page" id="aqui_hay" data-theme="b" data-content-theme="b">
 		<header data-role="header"  data-position="fixed">
 			<h1>Aquí hay...</h1>
@@ -141,8 +137,6 @@
 				</div>
 			</form>
 		</div><!-- /content -->
-		
-		
 	
 		<footer data-role="footer" data-position="fixed">
 			<div data-role="navbar">
@@ -152,6 +146,27 @@
 					<li><a href="#ayuda" data-iconpos="top" data-icon="info">Ayuda</a></li>
 				</ul>
 			</div><!-- /navbar -->
+		</footer><!-- /footer -->
+	</div>
+	
+	<!-- Pagina que muestra la informacion completa de un POIs -->
+	<div data-role="page" id="info_poi" data-theme="b" data-content-theme="b">
+	
+		<header data-role="header"  data-position="fixed" data-tap-toggle="false">
+			<h1>Información del lugar</h1>
+		</header><!-- /header -->
+
+		<div data-role="content">
+			<h2 id="nombre_poi_val" class="field">
+			Nombre del	POI
+			</h2>
+			<div id="descripcion_poi_val" class="field">
+			Descripción del POI
+			</div>
+		</div><!-- /content -->
+	
+		<footer data-role="footer" data-position="fixed">
+			<!-- Boton de "volver"? -->
 		</footer><!-- /footer -->
 	</div>
 	
