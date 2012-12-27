@@ -1,4 +1,11 @@
 (function($){
+	// Variables de la aplicacion
+	var id_layer=5;
+	var urlServer='http://www.lookingformaps.com/poiserver/index.php/poiserver';
+	var peticionGetPOIs='getpoisbyposition';
+	// Valor por defecto.La distancia puede modificarse en la opciones de la aplicacion
+	var distancia=9000;
+	
 	var self = $.mobile.GapNote = {
 			transition : 'none',
 			/*checkTransition :  function(){
@@ -50,8 +57,24 @@
 					}
 					else // La lista de POIs ya estaba rellena
 					{
-						// No hacemos nada
+						// No hacemos nada?
 					}
+					
+					// Definimos el comportamiento del boton "refrescar"
+					$('#refrescar_pois').off('click').on('click', function(){
+						// Obtenemos las coordenadas del dispositivo
+						alert('Refrescando POIs...');
+						$('#listado-notas').empty();
+						navigator.geolocation.getCurrentPosition(
+							// Si se obtienen sin problemas, solicitamos informacion
+							function success(position) {
+								self.consultarPuntosCercanos(position.coords.latitude,position.coords.longitude);
+							},
+							// Si hay algun problema al obtener las coordenadas
+							function error(error) {
+								self.error(tx,error);
+							});
+					})
 					
 				});
 				
@@ -64,16 +87,35 @@
 				$('#aqui_hay').live('pageshow', function(){
 					
 				});
+				
+				// Cada vez que se accede a "info poi"
+				$('#info_poi').live('pageshow', function(){
+					
+					// Definimos el comportamiento del boton "atras"
+					$('#atras_info_poi').off('click').on('click', function(){
+						// Vuelve a la lista de POIs
+						//$.mobile.changePage('#donde_hay');
+						navigator.app.backHistory();
+					});
+					
+					// Definimos el comportamiento del boton "ver"
+					$('#ir_a_poi').off('click').on('click', function(){
+						alert('Hacer check in??');
+					});
+					
+				});
 			},
 			// Funcion que consulta con el Servidor de puntos
 			// VERSION POISERVER
 			consultarPuntosCercanos: function(lat, lon){
-				alert('Consultando al servidor puntos cercanos a:\n' + lat + ', ' + lon);
-				$.getJSON("http://www.lookingformaps.com/poiserver/index.php/poiserver/getpoisbyposition/5/"
-						+ lon 
-						+"/"
-						+ lat
-						+ "/90000",
+				alert('Consultando al servidor en un radio de ' + $('#radio_busqueda').attr('value') + ' Km');
+				distancia = $('#radio_busqueda').attr('value') * 1000;
+				$.getJSON(urlServer + "/"
+						+ peticionGetPOIs + "/"
+						+ id_layer + "/"
+						+ lon +"/"
+						+ lat+ "/" 
+						+ distancia,
 			             // Si obtenemos la respuesta del Servidor correctamente
 						 function(data){
 			        	 	//alert(data.hotspots.length);
@@ -88,13 +130,14 @@
 			        	 		// Para cada elemento, asignamos el POI como dato asociado al list item,
 			        	 		// y definimos la funcion que debe ejecutarse al hacer clic sobre el elemento
 			        	 		// Igualmente, el enlace "ver" lanza la apertura del visor de mapas.
-			        	 		 lista.append($('<li/>').data('poi',data.pois[i]).bind('vclick',function(){
-			        	 			self.verPOI($(this).data('poi'));})
+			        	 		 lista.append($('<li/>')
+			        	 				 .data('poi',data.pois[i]).bind('vclick',function(){self.verPOI($(this).data('poi'));})
 			        	 				 .attr('href','javascript:void(0)')
 			        	 				 .append($('<h2/>')
-										 .text(data.pois[i].name).append($('<BR/>')).
-										 append($('<h3/>').text('descripción: ' + data.pois[i].description))
-										 .append('<a href="geo:'+ latDestino + ','+ lonDestino +'?z=20" target="_blank">Ver</a>')));
+										 .text(data.pois[i].name).append($('<BR/>'))
+										 .append($('<h3/>').text('descripción: ' + data.pois[i].description))));
+										 //.append('<a href="geo:'+ latDestino + ','+ lonDestino +'?z=20" target="_blank">Ver</a>')));
+										 //.append('<a href="http://maps.google.com/maps?saddr='+ lat + ','+ lon +'&daddr=' + latDestino + ','+ lonDestino + '" target="_blank">Ver</a>')));
 			        	 	};
 						
 			        	 	$('#listado-notas').empty().append(lista.children()).listview('refresh');
@@ -113,9 +156,13 @@
 			// Actualiza los atributos de la pagina "info_poi" y la abre.
 			verPOI : function(poi){
 				$('#nombre_poi_val').text(poi.name);
-				// En la descripcion puede venir codigo html
+				// En la descripcion puede venir codigo html, asi que lo procesamos
 				$('#descripcion_poi_val').html(poi.description);
 				$.mobile.changePage('#info_poi');
+				
+				// Actualizamos el destino del boton del "Ir"
+				$('#ir_a_poi').attr('href', 'geo:'+ poi.lat + ','+ poi.long +'?z=18&q='+ poi.lat + ','+ poi.long + '(' + 'aqui!' + ')');
+				
 				},
 			abreMapa: function(){
 				//alert('intent');

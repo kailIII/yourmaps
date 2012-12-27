@@ -52,7 +52,8 @@
     // Queremos anular el boton de retroceso o que cierre la aplicacion?
     function onBackKeyDown() {
     	//Cierra la aplicacion
-    	if($.mobile.activePage.is('#ayuda') || $.mobile.activePage.is('#donde_hay') || $.mobile.activePage.is('#aqui_hay')){
+    	if($.mobile.activePage.is('#ayuda') || $.mobile.activePage.is('#donde_hay') || 
+    	   $.mobile.activePage.is('#aqui_hay')|| $.mobile.activePage.is('#configuracion')){
     		navigator.app.exitApp();
     	}
     	else
@@ -68,10 +69,10 @@
 
 <body onload="onLoad()"> 
 
-	<!--  Pagina de ayuda que tiene la bienvenida y una descripcion rapida de como usar la aplicacion -->
+	<!--  Pagina de bienvenida que tiene la bienvenida y una descripcion rapida de como usar la aplicacion -->
 	<div data-role="page" id="ayuda" data-theme="b" data-content-theme="b">
 		<header data-role="header"  data-position="fixed">
-			<h1>Ayuda</h1>
+			<h1>Bienvenido!</h1>
 		</header><!-- /header -->
 	
 		<footer data-role="footer" data-position="fixed">
@@ -79,7 +80,8 @@
 				<ul>
 					<li><a href="#donde_hay" data-iconpos="top" data-icon="search">Dónde?</a></li>
 					<li><a href="#aqui_hay" data-iconpos="top" data-icon="check">Aqui!</a></li>
-					<li><a href="#ayuda" class="ui-btn-active ui-state-persist" data-iconpos="top" data-icon="info">Ayuda</a></li>
+					<!-- <li><a href="#ayuda" class="ui-btn-active ui-state-persist" data-iconpos="top" data-icon="info">Ayuda</a></li> -->
+					<li><a href="#configuracion" data-iconpos="top" data-icon="gear">Config</a></li>
 				</ul>
 			</div><!-- /navbar -->
 		</footer><!-- /footer -->
@@ -92,6 +94,8 @@
 		desaparezca el header o el footer -->
 		<header data-role="header"  data-position="fixed" data-tap-toggle="false">
 			<h1>Puntos...</h1>
+			<a id="refrescar_pois" href="#" data-role="button" data-icon="refresh" data-theme="b" data-iconpos="notext" class="ui-btn-right" style="top: 14px">Refrescar</a> 
+			
 		</header><!-- /header -->
 		
 		<div data-role="content">
@@ -104,7 +108,8 @@
 				<ul>
 					<li><a href="#donde_hay" class="ui-btn-active ui-state-persist" data-iconpos="top" data-icon="search">Dónde?</a></li>
 					<li><a href="#aqui_hay" data-iconpos="top" data-icon="check">Aqui!</a></li>
-					<li><a href="#ayuda" data-iconpos="top" data-icon="info">Ayuda</a></li>
+					<!-- <li><a href="#ayuda" data-iconpos="top" data-icon="info">Ayuda</a></li>-->
+					<li><a href="#configuracion" data-iconpos="top" data-icon="gear">Config</a></li>
 				</ul>
 			</div><!-- /navbar -->
 		</footer><!-- /footer -->
@@ -143,7 +148,8 @@
 				<ul>
 					<li><a href="#donde_hay" data-iconpos="top" data-icon="search">Dónde?</a></li>
 					<li><a href="#aqui_hay" class="ui-btn-active ui-state-persist" data-iconpos="top" data-icon="check">Aqui!</a></li>
-					<li><a href="#ayuda" data-iconpos="top" data-icon="info">Ayuda</a></li>
+					<!-- <li><a href="#ayuda" data-iconpos="top" data-icon="info">Ayuda</a></li>-->
+					<li><a href="#configuracion" data-iconpos="top" data-icon="gear">Config</a></li>
 				</ul>
 			</div><!-- /navbar -->
 		</footer><!-- /footer -->
@@ -151,9 +157,8 @@
 	
 	<!-- Pagina que muestra la informacion completa de un POIs -->
 	<div data-role="page" id="info_poi" data-theme="b" data-content-theme="b">
-	
 		<header data-role="header"  data-position="fixed" data-tap-toggle="false">
-			<h1>Información del lugar</h1>
+			<h1>Información del punto</h1>
 		</header><!-- /header -->
 
 		<div data-role="content">
@@ -165,11 +170,47 @@
 			</div>
 		</div><!-- /content -->
 	
-		<footer data-role="footer" data-position="fixed">
-			<!-- Boton de "volver"? -->
+		<footer data-role="footer" data-position="fixed" data-tap-toggle="false">
+			<div data-role="navbar">
+				<ul>
+					<li><a id="atras_info_poi" href="#" data-role="button" data-icon="back" data-theme="b" >Volver</a></li>
+					<li><a id="ir_a_poi" href="#" data-role="button" data-icon="forward" data-theme="b" >Ver!</a></li>
+				</ul>
+			</div>
 		</footer><!-- /footer -->
 	</div>
 	
+	<!-- Pagina de configuracion -->
+	<div data-role="page" id="configuracion" data-theme="b" data-content-theme="b">
+		<header data-role="header"  data-position="fixed" data-tap-toggle="false">
+			<h1>Configuración</h1>
+		</header><!-- /header -->
+
+		<div data-role="content">
+			<form id="frmConfig" name="frmConfig">
+				<div data-role="fieldcontain" class="ui-hide-label">
+				<label for="el_alias">Escribe tu nombre o apodo: </label><br><br>
+					<input type="text"
+						name="alias" id="alias" value="" placeholder="Nombre usuario" />
+				</div>
+				<!-- TO DO: ESTO QUE SEA UN SELECT O UN SLIDER -->
+				<div data-role="fieldcontain" class="ui-hide-label">
+					<label for="la_distancia">Radio de búsqueda (Km): </label><br><br>
+						<input type="range" name="radio_busqueda" id="radio_busqueda" data-highlight="true" step="0.5" value="5" min="0" max="15" />
+				</div>
+			</form>
+		</div><!-- /content -->
 	
+		<footer data-role="footer" data-position="fixed" data-tap-toggle="false">
+			<div data-role="navbar">
+				<ul>
+					<li><a href="#donde_hay" data-iconpos="top" data-icon="search">Dónde?</a></li>
+					<li><a href="#aqui_hay"  data-iconpos="top" data-icon="check">Aqui!</a></li>
+					<!-- <li><a href="#ayuda" data-iconpos="top" data-icon="info">Ayuda</a></li>-->
+					<li><a href="#configuracion" class="ui-btn-active ui-state-persist" data-iconpos="top" data-icon="gear">Config</a></li>
+				</ul>
+			</div><!-- /navbar -->
+		</footer><!-- /footer -->
+	</div>
 </body>
 </html>
