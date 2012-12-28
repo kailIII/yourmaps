@@ -71,11 +71,35 @@
 
 	<!--  Pagina de bienvenida que tiene la bienvenida y una descripcion rapida de como usar la aplicacion -->
 	<div data-role="page" id="ayuda" data-theme="b" data-content-theme="b">
-		<header data-role="header"  data-position="fixed">
+		<header data-role="header" data-position="fixed" data-tap-toggle="false">
 			<h1>Bienvenido!</h1>
 		</header><!-- /header -->
+
+		<div data-role="content" >	
+			<!-- Formulario para rellenar el alias en caso de que no lo tenga -->
+			<div data-role="fieldcontain" class="ui-hide-label" id="div_bienvenida_alias" >
+				<form id="frmAltaAlias" name="frmAltaAlias">
+					<label for="el_alias">Antes que nada, necesitas proporcionar un nombre o apodo. Puedes modificarlo en 
+					cualquier momento desde las opciones de la aplicación.</label><br><br>
+						<input type="text"
+							name="alias_inicial" id="alias_inicial" value="" placeholder="Nombre usuario" />
+					<div data-role="fieldcontain" class="ui-hide-label">
+						<a href="javascript:void(0)" id="crear_alias" data-role="button" data-icon="check" data-iconpos="right" data-inline="true" data-theme="e">Guardar</a> 
+					</div>
+				</form>
+			</div>
+			<div data-role="fieldcontain" class="ui-hide-label" id="div_bienvenida" align="center">
+					<label for="el_alias">En la parte inferior de la pantalla verás tres botones:</label><br><br>
+					<a href="#" data-role="button" data-icon="search" data-iconpos="right" data-inline="true" data-theme="a">Dónde?</a><br>
+					<label for="el_alias">Aquí podrás buscar puntos de interés que estén cerca de ti.</label><br><br>
+					<a href="#" data-role="button" data-icon="check" data-iconpos="right" data-inline="true" data-theme="a">Aquí!</a><br>
+					<label for="el_alias">Desde esta pantalla podrás registrar tus propios puntos.</label><br><br>
+					<a href="#" data-role="button" data-icon="gear" data-iconpos="right" data-inline="true" data-theme="a">Config</a><br>
+					<label for="el_alias">Y aquí podrás cambiar opciones de configuración.</label><br>
+			</div>
+		</div><!-- /content -->
 	
-		<footer data-role="footer" data-position="fixed">
+		<footer data-role="footer" data-position="fixed" data-tap-toggle="false">
 			<div data-role="navbar">
 				<ul>
 					<li><a href="#donde_hay" data-iconpos="top" data-icon="search">Dónde?</a></li>
