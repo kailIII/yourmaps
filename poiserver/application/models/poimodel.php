@@ -169,37 +169,47 @@ class Poimodel extends CI_Model {
 	 */
 	public function searchByGeo($tableName, $geometryColumn, $x, $y, $radius = 0.1){
 
-		/*
-		 Sustituir la query por esta:
-		 	
-		 select aquihaytema.id, aquihaytema.name, aquihaytema.description, X(aquihaytema.geom), Y(aquihaytema.geom), AsText(aquihaytema.geom), aquihaytema.source, aquihaytema.url_source, aquihaytema.photo_url, aquihaytema.web_url, count(CHECKINS.check_time) num_checkins from aquihaytema LEFT JOIN CHECKINS on aquihaytema.id = CHECKINS.poi_id  group by aquihaytema.id order by num_checkins desc
-		 	
-		 Haciendo un LEFT JOIN entre tabla de pois y CHECKINS, y GROUP BY id, tenemos el contador de  POIS
-		 	
-		 * */
-
-		$this->db->select('id, name, description, x(geom) \'long\', y(geom) \'lat\', astext(geom) \'geometry\', source, url_source, photo_url, WEB_URL');
 		$wktGeom = null;
 		if($radius > 0){
 			$wktGeom = "POLYGON ((".($x - $radius)." ".($y - $radius).", ".($x + $radius)." ".($y -$radius).", ".($x + $radius)." ".($y + $radius).", ".($x - $radius)." ".($y + $radius).", ".($x - $radius)." ".($y -$radius)." ))";
 		}else{
 			$wktGeom = "POINT($x $y)";
 		}
-		$this->db->where("MBRIntersects(GeomFromText('$wktGeom'),$geometryColumn)");
-		$query = $this->db->get($tableName);
+		
+		$sql = "select $tableName.id, $tableName.name, $tableName.description, ".
+				 "X($tableName.geom) 'long', Y($tableName.geom) lat, ".
+				 " $tableName.photo_url, $tableName.web_url, ".
+				 "count(CHECKINS.check_time) num_checkins from $tableName LEFT JOIN CHECKINS ".
+				 "on $tableName.id = CHECKINS.poi_id  ".
+				 "where MBRIntersects(GeomFromText('$wktGeom'),$geometryColumn) ".
+				 "group by $tableName.id order by num_checkins desc";
+		
+		$query = $this->db->query($sql);
 		if ($query->num_rows() > 0){
-			return $query->result();
+			return $query->result_array();
 		}
 		return false;
 	}
 
 
 	public function searchByText($tableName, $searchText){
-		$this->db->select('id, name, description, x(geom) \'long\', y(geom) \'lat\', astext(geom) \'geometry\', source, url_source, photo_url, WEB_URL');
-		$this->db->where("match(name,description) against ('$searchText' in natural language mode)");
-		$query = $this->db->get($tableName);
+//		$this->db->select('id, name, description, x(geom) \'long\', y(geom) \'lat\', astext(geom) \'geometry\', source, url_source, photo_url, WEB_URL');
+//		$this->db->where("match(name,description) against ('$searchText' in natural language mode)");
+		$matchText = '"'.$searchText.'"';
+		$sql = "select $tableName.id, $tableName.name, $tableName.description, ".
+				 "X($tableName.geom) 'long', Y($tableName.geom) lat,".
+				 "$tableName.photo_url, $tableName.web_url, ".
+				 "count(CHECKINS.check_time) num_checkins from $tableName LEFT JOIN CHECKINS ".
+				 "on $tableName.id = CHECKINS.poi_id  ".
+				 "where match(name,$tableName.description) against ( '$matchText' in boolean mode) ".
+				 "group by $tableName.id order by num_checkins desc";
+		
+		
+		
+		
+		$query = $this->db->query($sql);
 		if ($query->num_rows() > 0){
-			return $query->result();
+			return $query->result_array();
 		}
 		return false;
 	}

@@ -42,6 +42,8 @@ class PoiServer extends CI_Controller {
 	public function getpoisbytext($layer_id, $search_text){
 		$this->load->model("poimodel");
 		$this->load->model("poiservicesmodel");
+		
+		$search_text = urldecode($search_text);
 
 		$data = $this->poiservicesmodel->getPoiService($layer_id);
 			
