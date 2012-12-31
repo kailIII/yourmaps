@@ -4,10 +4,10 @@
 	var urlServer='http://www.lookingformaps.com/poiserver/index.php/poiserver';
 	var peticionGetPOIs='getpoisbyposition';
 	// Valor por defecto.La distancia puede modificarse en la opciones de la aplicacion
-	var distancia=5000;
+	var distancia=5;
 	var aliasUsuario='Anónimo';
 	
-	var self = $.mobile.GapNote = {
+	var self = $.mobile.AquiHayTema = {
 			transition : 'none',
 			/*checkTransition :  function(){
 				$.mobile.defaultPageTransition = self.transition;
@@ -16,10 +16,6 @@
 				
 				// Eliminamos efectos de transicion
 				$.mobile.defaultPageTransition = 'none';
-				
-				// Comprobamos si el usuario tiene ya guardado en la BD un alias y un radio de busqueda,
-				// para actualizar los valores correspondientes
-				self.consultaBD();
 				
 				// Esta funcion se ejecuta la primera vez que se carga cada pagina
 				$(document).bind('pageinit', function(){  
@@ -90,9 +86,13 @@
 				
 				// Cada vez que se accede a "ayuda"
 				$('#ayuda').live('pageshow', function(){
+					
 					$('#crear_alias').off('click').on('click', function(){
 						self.crearAlias();
-					})
+					});
+					
+					//alert('Aquí buscaríamos en la BD...');
+					//self.consultaBD();
 				});
 				
 				// Cada vez que se accede a "aqui"
@@ -118,9 +118,23 @@
 				});
 				
 				// Cada vez que se accede a "config"
-				$('#aqui_hay').live('pageshow', function(){
-					// Leemos de la BD si el usuario tiene alias y radio definifos
-					
+				$('#configuracion').live('pageshow', function(){
+					// Cada vez que el usuario cambia el alias y este pierde el foco,
+					// lo salvamos en la BD
+					$('#alias').on('blur', function() {
+						 // alert('A salvar el alias...!');
+						self.actualizarAlias();
+						});
+					// TODO: Si pulsa retorno, tambien?
+					$('#radio_busqueda').val(distancia);
+					$('#radio_busqueda').slider('refresh');
+					$('#alias').val(aliasUsuario);
+					$('#alias').attr("placeholder",aliasUsuario);
+				});
+				
+				// Usamos el evento de salir de la pagina de configuracion para actualizar valores globales de configuracion
+				$('#configuracion').live('pagehide', function(){
+					distancia = $('#radio_busqueda').val();
 				});
 			},
 			// Funcion que consulta con el Servidor de puntos
@@ -128,13 +142,13 @@
 			consultarPuntosCercanos: function(lat, lon){
 				//alert('Consultando al servidor en un radio de ' + $('#radio_busqueda').attr('value') + ' Km');
 				// Lanzamos la peticion con el radio de busqueda correspondiente
-				distancia = $('#radio_busqueda').attr('value') * 1000;
+				var distanciaKm = $('#radio_busqueda').attr('value') * 1000;
 				$.getJSON(urlServer + "/"
 						+ peticionGetPOIs + "/"
 						+ id_layer + "/"
 						+ lon +"/"
 						+ lat+ "/" 
-						+ distancia,
+						+ distanciaKm,
 			             // Si obtenemos la respuesta del Servidor correctamente
 						 function(data){
 			        	 	//alert(data.hotspots.length);
@@ -193,7 +207,7 @@
 					if(activar)
 					{
 						$.mobile.loading( 'show', {
-						text: 'Buscando...',
+						text: 'Buscando en ' + distancia + 'km a la redonda...',
 						textVisible: true,
 						theme: 'b',
 						html: ''
@@ -210,8 +224,9 @@
 			connection : null,
 			// Funcion para abrir la BD
 			openDatabase : function(){
-				alert('Abriendo conexion...');
-				self.connection = window.openDatabase("PoiClientDb", "1.0", "Datos_Poi_Client", 200000);
+				//alert('Abriendo conexion...');
+				self.connection = window.openDatabase("PoiClientDb", "1.0", "Datos", 200000);
+				//alert('conexion establecida');
 			},
 			// Funcion para ejecutar sentencias en nuestra BD
 			transaction: function(fn,err,suc){
@@ -237,11 +252,9 @@
 							// Modificamos las variables globales internas
 							aliasUsuario=aliasdb;
 							distancia=radiodb;
-							// Modificamos el valor del alias en la pagina de configuracion 
-							$('#alias').val(aliasdb);
-							$('#alias').attr("placeholder",aliasdb);
-							// Modificamos el valor del radio de busqueda en la pagina de configuracion
-							$('#radio_busqueda').val(radiodb);
+							// La propia pagina de configuracion se encargara de rellenar el alias y el
+							// radio de busqueda cada vez que se pinte
+							
 						}
 						else
 						{
@@ -278,6 +291,24 @@
 				    function (tx,err){
 				    	self.error(tx,err);
 				    })*/
+				})
+			},
+			actualizarAlias: function(){			
+				var f = (new Date()).toUTCString();
+				var datos = [
+						$('#alias').val(),
+						$('#radio_busqueda').val(),
+						f
+				];
+				
+				// Guardamos en la BD el alias y la fecha
+				self.transaction(function(tx){
+				   tx.executeSql('INSERT OR REPLACE INTO Config (id, alias, radio, fecha) VALUES (1,?,?,?)', datos,function(tx){
+				    	// Al actualizar no hace falta hacer nada				    	
+				    },
+				    function (tx,err){
+				    	self.error(tx,err);
+				    });
 				})
 			},
 			// Funcion que modifica el mensaje de bienvenida
