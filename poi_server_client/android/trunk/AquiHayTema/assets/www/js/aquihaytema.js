@@ -3,9 +3,15 @@
 	var id_layer=5;
 	var urlServer='http://www.lookingformaps.com/poiserver/index.php/poiserver';
 	var peticionGetPOIs='getpoisbyposition';
-	// Valor por defecto.La distancia puede modificarse en la opciones de la aplicacion
+	var peticionGetSecurityQuestions='listsecurityquestions';
+	var peticionUserExist = 'userexist';
+	// Variables de configuracion
 	var distancia=5;
 	var aliasUsuario='Anónimo';
+	var idioma='ES';
+	var question = '';
+	var idQuestion=1;
+	var existeUsuario=false;
 	
 	var self = $.mobile.AquiHayTema = {
 			transition : 'none',
@@ -87,12 +93,14 @@
 				// Cada vez que se accede a "ayuda"
 				$('#ayuda').live('pageshow', function(){
 					
-					$('#crear_alias').off('click').on('click', function(){
+					/*$('#crear_alias').off('click').on('click', function(){
 						self.crearAlias();
-					});
+					});*/
 					
-					//alert('Aquí buscaríamos en la BD...');
-					//self.consultaBD();
+					$('#ir_configuracion').off('click').on('click', function(){
+						$.mobile.changePage('#configuracion');
+					})
+					
 				});
 				
 				// Cada vez que se accede a "aqui"
@@ -121,20 +129,44 @@
 				$('#configuracion').live('pageshow', function(){
 					// Cada vez que el usuario cambia el alias y este pierde el foco,
 					// lo salvamos en la BD
-					$('#alias').on('blur', function() {
+					/*$('#alias').on('blur', function() {
 						 // alert('A salvar el alias...!');
 						self.actualizarAlias();
-						});
+						});*/
 					// TODO: Si pulsa retorno, tambien?
-					$('#radio_busqueda').val(distancia);
+					/*$('#radio_busqueda').val(distancia);
 					$('#radio_busqueda').slider('refresh');
 					$('#alias').val(aliasUsuario);
-					$('#alias').attr("placeholder",aliasUsuario);
+					$('#alias').attr("placeholder",aliasUsuario);*/
+					
+					// Definimos el comportamiento del boton "atras"
+					$('#guardar_config').off('click').on('click', function(){
+						// Hay que asegurarse de que todos los campos están rellenos
+						var camposOk = self.compruebaCampos();
+						
+						if(camposOk){
+							// Solo si los campos estan rellenos, procedemos al alta de usuario
+							// Lo primero que tenemos que hacer es ver si el usuario existe ya en el servidor
+							// Como el servidor puede tardar unos segundos en responder, activamos el icono de loading
+							// Activcamos mensaje de loading, ya que vamos a comunicarnos con el servidor
+							$.mobile.loading( 'show', {
+								text: 'Guardando usuario...',
+								textVisible: true,
+								theme: 'b',
+								html: ''
+								});
+							
+							var nombre = encodeURIComponent($('#alias').val());
+							// Lanzamos el proceso de alta del usuario
+							self.altaUsuario(nombre);
+							
+						}
+					});
 				});
 				
 				// Usamos el evento de salir de la pagina de configuracion para actualizar valores globales de configuracion
 				$('#configuracion').live('pagehide', function(){
-					distancia = $('#radio_busqueda').val();
+					//distancia = $('#radio_busqueda').val();
 				});
 			},
 			// Funcion que consulta con el Servidor de puntos
@@ -165,15 +197,13 @@
 			        	 		// Construimos la lista de POIs
 			        	 		// Para cada elemento, asignamos el POI como dato asociado al list item,
 			        	 		// y definimos la funcion que debe ejecutarse al hacer clic sobre el elemento
-			        	 		// Igualmente, el enlace "ver" lanza la apertura del visor de mapas.
 			        	 		 lista.append($('<li/>')
 			        	 				 .data('poi',data.pois[i]).bind('vclick',function(){self.verPOI($(this).data('poi'));})
 			        	 				 .attr('href','javascript:void(0)')
 			        	 				 .append($('<h2/>')
 										 .text(data.pois[i].name).append($('<BR/>'))
-										 .append($('<h3/>').text('descripción: ' + data.pois[i].description))));
-										 //.append('<a href="geo:'+ latDestino + ','+ lonDestino +'?z=20" target="_blank">Ver</a>')));
-										 //.append('<a href="http://maps.google.com/maps?saddr='+ lat + ','+ lon +'&daddr=' + latDestino + ','+ lonDestino + '" target="_blank">Ver</a>')));
+										 .append($('<h3/>').text('descripción: ' + data.pois[i].description)
+										 .append($('<h3/>').text('nº checkins: ' + data.pois[i].num_checkins)))));
 			        	 	};
 						
 			        	 	$('#listado-notas').empty().append(lista.children()).listview('refresh');
@@ -194,6 +224,9 @@
 				$('#nombre_poi_val').text(poi.name);
 				// En la descripcion puede venir codigo html, asi que lo procesamos
 				$('#descripcion_poi_val').html(poi.description);
+				
+				// TODO: Aqui debemos pedir los checkinbypois, y actualizar el collapsable de la lista
+				
 				$.mobile.changePage('#info_poi');
 				
 				// Actualizamos el destino del boton del "Ir"
@@ -241,24 +274,33 @@
 			consultaBD: function(){
 				//alert('Consulta inicial de la BD...');
 				self.transaction(function(tx){
-				    tx.executeSql('CREATE TABLE IF NOT EXISTS Config (id INTEGER PRIMARY KEY ASC, alias VARCHAR(50), fecha VARCHAR(30), radio REAL)');
-				    //alert('Consultando datos...');
+					//tx.executeSql('DROP TABLE IF EXISTS Config');
+					//alert('Borrada');
+				    tx.executeSql('CREATE TABLE IF NOT EXISTS Config (id INTEGER PRIMARY KEY ASC, alias VARCHAR(50), password VARCHAR(30), id_question NUMBER, question TEXT, fecha VARCHAR(30), radio REAL, idioma VARCHAR(30))');
+				    //alert('Tabla creada. Consultando datos...');
 				    tx.executeSql('SELECT * FROM Config', [],function(tx,rs){
 						if(rs.rows.length > 0){
-							var aliasdb = rs.rows.item(0).alias;
-							var radiodb = rs.rows.item(0).radio;
+							// Modificamos las variables globales internas
+							aliasUsuario = rs.rows.item(0).alias;
+							distancia = rs.rows.item(0).radio;
+							idioma = rs.rows.item(0).idioma;
+							question = rs.rows.item(0).question;
+							idQuestion = rs.rows.item(0).id_question;
+							
 							// Modifcamos el texto de la pagina de bienvenida
 							self.daBienvenida(aliasdb);
-							// Modificamos las variables globales internas
-							aliasUsuario=aliasdb;
-							distancia=radiodb;
+							
+
 							// La propia pagina de configuracion se encargara de rellenar el alias y el
 							// radio de busqueda cada vez que se pinte
 							
 						}
 						else
 						{
-							alert('No hay datos aún en la BD');
+							// alert('No hay usuario registrado');
+							// Activamos en la pantalla de configuracion el mensaje correspondiente
+							$('#div_bienvenida_alta').show();
+							
 						}
 						
 					});
@@ -267,6 +309,9 @@
 			},
 			// Funcion que guarda el alias en la BD
 			crearAlias: function(){
+				
+				// TODO: Lo primero que hay que hacer es comprobar si ya existe ese usuario, y solo
+				// si no existe, darlo de alta en el servidor y actualizar los valores en la aplicacion y BD
 				
 				var f = (new Date()).toUTCString();
 				var datos = [
@@ -293,7 +338,11 @@
 				    })*/
 				})
 			},
-			actualizarAlias: function(){			
+			actualizarAlias: function(){
+				
+				// TODO: Lo primero que hay que hacer es comprobar si ya existe ese usuario, y solo
+				// si no existe, darlo de alta en el servidor y actualizar los valores en la aplicacion y BD
+				
 				var f = (new Date()).toUTCString();
 				var datos = [
 						$('#alias').val(),
@@ -313,9 +362,100 @@
 			},
 			// Funcion que modifica el mensaje de bienvenida
 			daBienvenida: function(nombre){
-				$('#div_bienvenida_alias').html('<h2>Hola, ' + nombre + '!</h2>' + 
+				$('#div_bienvenida_alta').hide();
+				$('#div_bienvenida_info').html('<h2>Hola, ' + nombre + '!</h2>' + 
 						'<h3>Te recordamos cómo funciona la aplicación:</h3>');
+				$('#div_bienvenida_info').show();
+			},
+			// Funcion que consulta con el Servidor la lista de preguntas de seguridad disponibles
+			consultarPreguntas: function(){
+				//alert('Consultando al servidor preguntas...');
+				$.getJSON(urlServer + "/"
+						+ peticionGetSecurityQuestions,
+			             // Si obtenemos la respuesta del Servidor correctamente
+						 function(data){
+			        	 	//alert(data.questions.length);
+							
+							// Desactivamos el icono de carga
+							//self.muestraLoading(false);
+			        	 	
+							// Generamos la lista de cuestiones
+			        	 	var lista = '';
+			        	 	for (var i = 0; i < data.questions.length; i++){
+			        	 		// Construimos la lista
+			        	 		// TODO: POR AHORA VEMOS EN ESPAÑOL
+			        	 		 lista = lista + '<option value="' + data.questions[i].id + '">' + data.questions[i].es_question + '</option>';
+			        	 	};
+						
+			        	 	$('#preguntas').html(lista).selectmenu('refresh', true);
+			          
+			       		});
+				
+			},
+			// Funcion que modifica el mensaje de bienvenida
+			daBienvenida: function(nombre){
+				$('#div_bienvenida_alta').hide();
+				$('#div_bienvenida_info').html('<h2>Hola, ' + nombre + '!</h2>' + 
+						'<h3>Te recordamos cómo funciona la aplicación:</h3>');
+				$('#div_bienvenida_info').show();
+			},
+			// Funcion que comprueba si los campos del formulario de alta estan rellenos
+			// TODO: MAS QUE EL ALERT, O ADEMAS DEL MISMO, DEBERIAN PINTARSE EN ROJO LOS CAMPOS ERRONEOS, CAMBIANDO SU CLASS
+			compruebaCampos: function(){
+				
+				// Primero comprobamos si los campos usuario y contraseña estan rellenos
+				if($.trim($('#alias').val()).length == 0 || $.trim($('#password').val()).length == 0 )
+				{
+					alert('Los campos usuario y contraseña no pueden estar vacíos');
+					return false;
+				}
+				else // usuario y contraseña estan rellenos
+				{
+					//alert('La preguntaescogida es id=' + $('#preguntas').val() + ',' + $('#preguntas').find(":selected").text());
+					if($.trim($('#respuesta').val()).length == 0){
+						alert('La respuesta a la pregunta de seguridad debe tener al menos una letra');
+						return false;
+					}
+					
+				}
+
+				// Llegado aqui, todo es correcto
+				return true;
+			},
+			// Funcion que comprueba si el usuario que se quiere dar de alta existe ya o no en el servidor
+			altaUsuario: function(nombre){
+				
+				var existe = false;
+				
+				//alert('Consultando al servidor si existe el usuario ' + nombre + '...');
+						
+				$.getJSON(urlServer + '/'
+						+ peticionUserExist + '/' + nombre,
+			             // Si obtenemos la respuesta del Servidor correctamente
+						 function(data){
+						
+						// Desactivamos el icono de carga
+						//self.muestraLoading(false);
+			        	// Damos por sentado que siempre hay respuesta del servidor
+			        	 existe = data.message;
+						 if(existe){
+							 	$.mobile.loading( 'hide' );
+								alert('Lo sentimos, ese usuario ya existe, por favor elija uno nuevo');
+						 }
+						 // Si no existe, procedemos a darlo de alta
+						 else {
+							 	$.mobile.loading( 'hide' );
+							 	//TODO: LANZAR EL ALTA DE USUARIO EN SEL SERVIDOR
+								alert('Enhorabuena, el usuario ha sido creado!');
+							}
+			        	 	
+			       		});
+
+				
+				
+				//return existe;
 			}
+
 	};
 	
 	self.init();
