@@ -5,13 +5,17 @@
 	var peticionGetPOIs='getpoisbyposition';
 	var peticionGetSecurityQuestions='listsecurityquestions';
 	var peticionUserExist = 'userexist';
+	var peticionInsertarUsuario = 'insertuser';
 	// Variables de configuracion
 	var distancia=5;
-	var aliasUsuario='Anónimo';
-	var idioma='ES';
-	var question = '';
+	var aliasUsuario='';
+	var idioma='';
+	var password = '';
+	//var question = '';
 	var idQuestion=1;
+	var respuesta='';
 	var existeUsuario=false;
+	var nombreBD = 'AquiHayTemaDb';
 	
 	var self = $.mobile.AquiHayTema = {
 			transition : 'none',
@@ -127,17 +131,23 @@
 				
 				// Cada vez que se accede a "config"
 				$('#configuracion').live('pageshow', function(){
-					// Cada vez que el usuario cambia el alias y este pierde el foco,
-					// lo salvamos en la BD
-					/*$('#alias').on('blur', function() {
-						 // alert('A salvar el alias...!');
-						self.actualizarAlias();
-						});*/
-					// TODO: Si pulsa retorno, tambien?
-					/*$('#radio_busqueda').val(distancia);
-					$('#radio_busqueda').slider('refresh');
-					$('#alias').val(aliasUsuario);
-					$('#alias').attr("placeholder",aliasUsuario);*/
+					// Actualizamos los valores de los campos de textos si hemos leido valores de la BD
+					if(aliasUsuario != ''){
+						//alert('Actualizamos valores del formulario de config...');
+						$('#radio_busqueda').val(distancia);
+						$('#radio_busqueda').slider('refresh');
+						$('#alias').val(aliasUsuario);
+						$('#alias').attr("placeholder",aliasUsuario);
+						$('#password').val(password);
+						$('#password').attr("placeholder",password);
+						$('#respuesta').val(respuesta);
+						$('#respuesta').attr("placeholder",respuesta);
+						// La opcion de pregunta secreta que se ha usado
+						$('#preguntas option[value="' +  idQuestion + '"]').attr('selected', 'selected');
+
+					}
+					
+					//alert('Comportamiento del boton');
 					
 					// Definimos el comportamiento del boton "atras"
 					$('#guardar_config').off('click').on('click', function(){
@@ -240,7 +250,7 @@
 					if(activar)
 					{
 						$.mobile.loading( 'show', {
-						text: 'Buscando en ' + distancia + 'km a la redonda...',
+						text: 'Buscando en ' + $('#radio_busqueda').val() + 'km a la redonda...',
 						textVisible: true,
 						theme: 'b',
 						html: ''
@@ -258,7 +268,7 @@
 			// Funcion para abrir la BD
 			openDatabase : function(){
 				//alert('Abriendo conexion...');
-				self.connection = window.openDatabase("PoiClientDb", "1.0", "Datos", 200000);
+				self.connection = window.openDatabase(nombreBD, "1.0", "Datos", 200000);
 				//alert('conexion establecida');
 			},
 			// Funcion para ejecutar sentencias en nuestra BD
@@ -276,23 +286,24 @@
 				self.transaction(function(tx){
 					//tx.executeSql('DROP TABLE IF EXISTS Config');
 					//alert('Borrada');
-				    tx.executeSql('CREATE TABLE IF NOT EXISTS Config (id INTEGER PRIMARY KEY ASC, alias VARCHAR(50), password VARCHAR(30), id_question NUMBER, question TEXT, fecha VARCHAR(30), radio REAL, idioma VARCHAR(30))');
+				    tx.executeSql('CREATE TABLE IF NOT EXISTS Config (id INTEGER PRIMARY KEY ASC, alias VARCHAR(50), password VARCHAR(30), id_question NUMBER, fecha VARCHAR(30), radio REAL, idioma VARCHAR(30), respuesta VARCHAR(50))');
 				    //alert('Tabla creada. Consultando datos...');
 				    tx.executeSql('SELECT * FROM Config', [],function(tx,rs){
 						if(rs.rows.length > 0){
+							//alert('Hay datos...' + rs.rows.item(0).alias + ',' + rs.rows.item(0).radio + ',' + rs.rows.item(0).idioma + ',' +  rs.rows.item(0).id_question );
 							// Modificamos las variables globales internas
 							aliasUsuario = rs.rows.item(0).alias;
 							distancia = rs.rows.item(0).radio;
 							idioma = rs.rows.item(0).idioma;
-							question = rs.rows.item(0).question;
 							idQuestion = rs.rows.item(0).id_question;
-							
+							password = rs.rows.item(0).password;
+							respuesta = rs.rows.item(0).respuesta;
 							// Modifcamos el texto de la pagina de bienvenida
-							self.daBienvenida(aliasdb);
+							self.daBienvenida(aliasUsuario);
 							
-
 							// La propia pagina de configuracion se encargara de rellenar el alias y el
-							// radio de busqueda cada vez que se pinte
+							// radio de busqueda cada vez que se pinte. Eso evita que el usuario haga cambios en los campos,
+							// no los salve...
 							
 						}
 						else
@@ -339,10 +350,7 @@
 				})
 			},
 			actualizarAlias: function(){
-				
-				// TODO: Lo primero que hay que hacer es comprobar si ya existe ese usuario, y solo
-				// si no existe, darlo de alta en el servidor y actualizar los valores en la aplicacion y BD
-				
+	
 				var f = (new Date()).toUTCString();
 				var datos = [
 						$('#alias').val(),
@@ -350,7 +358,7 @@
 						f
 				];
 				
-				// Guardamos en la BD el alias y la fecha
+				// Guardamos en la BD los datos de configuracion
 				self.transaction(function(tx){
 				   tx.executeSql('INSERT OR REPLACE INTO Config (id, alias, radio, fecha) VALUES (1,?,?,?)', datos,function(tx){
 				    	// Al actualizar no hace falta hacer nada				    	
@@ -384,7 +392,8 @@
 			        	 	for (var i = 0; i < data.questions.length; i++){
 			        	 		// Construimos la lista
 			        	 		// TODO: POR AHORA VEMOS EN ESPAÑOL
-			        	 		 lista = lista + '<option value="' + data.questions[i].id + '">' + data.questions[i].es_question + '</option>';
+			        	 		 //lista = lista + '<option id="opcion_pregunta_' +  i+1 + '" value="' + data.questions[i].id + '">' + data.questions[i].es_question + '</option>';
+			        	 		lista = lista + '<option value="' + data.questions[i].id + '">' + data.questions[i].es_question + '</option>';
 			        	 	};
 						
 			        	 	$('#preguntas').html(lista).selectmenu('refresh', true);
@@ -394,15 +403,15 @@
 			},
 			// Funcion que modifica el mensaje de bienvenida
 			daBienvenida: function(nombre){
+				//alert('Bienvenido, ' + nombre);
 				$('#div_bienvenida_alta').hide();
-				$('#div_bienvenida_info').html('<h2>Hola, ' + nombre + '!</h2>' + 
-						'<h3>Te recordamos cómo funciona la aplicación:</h3>');
+				$('#saludo_personalizado').text('Hola, ' + nombre + '!');
 				$('#div_bienvenida_info').show();
 			},
 			// Funcion que comprueba si los campos del formulario de alta estan rellenos
 			// TODO: MAS QUE EL ALERT, O ADEMAS DEL MISMO, DEBERIAN PINTARSE EN ROJO LOS CAMPOS ERRONEOS, CAMBIANDO SU CLASS
 			compruebaCampos: function(){
-				
+				//alert('Comprobando campos...');
 				// Primero comprobamos si los campos usuario y contraseña estan rellenos
 				if($.trim($('#alias').val()).length == 0 || $.trim($('#password').val()).length == 0 )
 				{
@@ -444,9 +453,61 @@
 						 }
 						 // Si no existe, procedemos a darlo de alta
 						 else {
-							 	$.mobile.loading( 'hide' );
-							 	//TODO: LANZAR EL ALTA DE USUARIO EN SEL SERVIDOR
-								alert('Enhorabuena, el usuario ha sido creado!');
+							 	// poiserver/insertuser/securityQuestionCode/alias/password/securityAnswer
+							 	/* alert('Haciendo la petición de alta: ' + urlServer + '/'
+										+ peticionInsertarUsuario + '/' + $('#preguntas').val() + '/'
+										+ encodeURIComponent($('#alias').val()) + '/'
+										+ encodeURIComponent($('#password').val()) + '/'
+										+ encodeURIComponent($('#respuesta').val()));*/
+							 	$.getJSON(urlServer + '/'
+								+ peticionInsertarUsuario + '/' + $('#preguntas').val() + '/'
+								+ encodeURIComponent($('#alias').val()) + '/'
+								+ encodeURIComponent($('#password').val()) + '/'
+								+ encodeURIComponent($('#respuesta').val()),
+							    // Si obtenemos la respuesta del Servidor correctamente
+								// TODO: CONTROLAR SI SE PRODUCE ERROR: ESTARIA DADO DE ALTA EN EL SERVER PERO NO EN LA BD
+								function(data){
+									// TODO: PONER LOS ESTILOS DE LOS INPUTS EN VERDE?
+							 		// Una vez dado de alta en el servidor, lo guardamos en nuestra BD
+							 		//alert('Usuario dado de alta en Servidor, procediendo a guardarlo...');
+							 		var f = (new Date()).toUTCString();
+									var datos = [
+											$('#alias').val(),
+											$('#password').val(),
+											$('#preguntas').val(),
+											f,
+											$('#radio_busqueda').val(),
+											'ES',
+											$('#respuesta').val()
+									];
+									
+									// Guardamos en la BD los datos de configuracion
+									self.transaction(function(tx){
+									   tx.executeSql('INSERT OR REPLACE INTO Config (id, alias, password, id_question, fecha, radio, idioma, respuesta) VALUES (1,?,?,?,?,?,?,?)', datos,function(tx){
+									    	// Al actualizar no hace falta hacer nada	
+										   //alert('Datos de usuario guardados en la BD local');
+									    },
+									    function (tx,err){
+									    	self.error(tx,err);
+									    });
+									});
+							 		
+							 		// Finalizado el proceso, informamos al usuario del exito del alta
+								 	$.mobile.loading('hide');
+									alert('Enhorabuena, el usuario ha sido creado!');
+									// Actualizamos las variables globales
+									distancia=$('#radio_busqueda').val();
+									aliasUsuario=$('#alias').val();
+									idioma='ES';
+									password = $('#password').val();
+									idQuestion=$('#radio_busqueda').val();
+									respuesta = $('#respuesta').val();
+									// Cambiamos el mensaje de bienvenida para que refleje el nuevo alias
+									self.daBienvenida($('#alias').val());
+									$.mobile.changePage('#ayuda');
+							   });
+							 
+							 	
 							}
 			        	 	
 			       		});

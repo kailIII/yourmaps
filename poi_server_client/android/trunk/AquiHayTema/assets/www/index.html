@@ -106,6 +106,8 @@
 			</div>
 			<!-- El siguiente div de ayuda esta incialmente oculto. Se mostraria solo si ya existe usuario -->
 			<div   id="div_bienvenida_info" align="center" style="display: none">
+					<h2 id='saludo_personalizado'></h2>
+					<h3>Te recordamos cómo funciona la aplicación:</h3>
 					<label for="el_alias">En la parte inferior de la pantalla verás tres botones:</label><br><br>
 					<a href="#" data-role="button" data-icon="search" data-iconpos="right" data-inline="true" data-theme="a">Dónde?</a><br>
 					<label for="el_alias">Aquí podrás buscar puntos de interés que estén cerca de ti.</label><br><br>
@@ -246,7 +248,9 @@
 				</div>
 				<div>
 					<label for="respuesta">Respuesta:</label>
-					<textarea name="respuesta" id="respuesta"></textarea>
+					<!-- <textarea name="respuesta" id="respuesta"></textarea> -->
+					<input type="text"
+						name="respuesta" id="respuesta" value="" placeholder="Respuesta secreta" />
 				</div>
 				<!-- Boton para guardar -->
 				<div data-role="fieldcontain" class="ui-hide-label">
