@@ -6,6 +6,7 @@
 	var peticionGetSecurityQuestions='listsecurityquestions';
 	var peticionUserExist = 'userexist';
 	var peticionInsertarUsuario = 'insertuser';
+	var peticiongetChekinsByPoi = 'getcheckinsbypoi';
 	// Variables de configuracion
 	var distancia=5;
 	var aliasUsuario='';
@@ -175,8 +176,9 @@
 				});
 				
 				// Usamos el evento de salir de la pagina de configuracion para actualizar valores globales de configuracion
+				// TODO: SALVAMOS TAMBIEN EN LA BD?
 				$('#configuracion').live('pagehide', function(){
-					//distancia = $('#radio_busqueda').val();
+					distancia = $('#radio_busqueda').val();
 				});
 			},
 			// Funcion que consulta con el Servidor de puntos
@@ -184,7 +186,7 @@
 			consultarPuntosCercanos: function(lat, lon){
 				//alert('Consultando al servidor en un radio de ' + $('#radio_busqueda').attr('value') + ' Km');
 				// Lanzamos la peticion con el radio de busqueda correspondiente
-				var distanciaKm = $('#radio_busqueda').attr('value') * 1000;
+				var distanciaKm = distancia * 1000;
 				$.getJSON(urlServer + "/"
 						+ peticionGetPOIs + "/"
 						+ id_layer + "/"
@@ -236,6 +238,49 @@
 				$('#descripcion_poi_val').html(poi.description);
 				
 				// TODO: Aqui debemos pedir los checkinbypois, y actualizar el collapsable de la lista
+				// Comprobamos si hay chekins disponibles
+				if(poi.num_checkins > 0)
+				{
+					// Aqui hacemos la peticion de los checkins del poi
+					// poiserver/getcheckinsbypoi/layer_id/poi_id
+					// alert('Pidiendo el getcheckinsbypoi...');
+					$.getJSON(urlServer + "/"
+							+ peticiongetChekinsByPoi + '/'
+							+ id_layer + '/'
+							+ poi.id,
+				             // Si obtenemos la respuesta del Servidor correctamente
+							 function(data){
+				        	 	//alert('Obtenida respuesta del getcheckinsbypoi!');
+
+								// Generamos la lista con los checkins
+				        	 	// TODO: ORDENAR LOS CHEKINS POR TIEMPO?
+				        	 	var lista = $('<ul>');
+				        	 	for (var i = 0; i < data.checkins.length; i++){
+				        	 		//alert('Procesamos un checkpoi...');
+				        	 		lista.append($('<li/>')
+				        	 				 .attr('href','javascript:void(0)')
+				        	 				 .append($('<h2/>')
+											 .text(data.checkins[i].user_alias).append($('<BR/>'))
+											 .append($('<font style="white-space:normal; font-size: small" />').text(data.checkins[i].description)
+											 .append($('<BR/>'))
+											 .append($('<font style="white-space:normal; font-size: small" />').text('(' + data.checkins[i].check_time + ')')))));
+				        	 		
+				        	 	};
+							
+				        	 	$('#checkins_poi').show();
+				        	 	$('#lista_checinks_poi').empty().append(lista.children()).listview('refresh');
+				        	 	
+				        	 	
+				          
+				       		});
+					
+					
+				}
+				else
+				{
+					$('#checkins_poi').hide();
+				}
+				
 				
 				$.mobile.changePage('#info_poi');
 				
@@ -250,7 +295,7 @@
 					if(activar)
 					{
 						$.mobile.loading( 'show', {
-						text: 'Buscando en ' + $('#radio_busqueda').val() + 'km a la redonda...',
+						text: 'Buscando en ' + distancia + 'km a la redonda...',
 						textVisible: true,
 						theme: 'b',
 						html: ''
@@ -369,12 +414,12 @@
 				})
 			},
 			// Funcion que modifica el mensaje de bienvenida
-			daBienvenida: function(nombre){
+			/*daBienvenida: function(nombre){
 				$('#div_bienvenida_alta').hide();
 				$('#div_bienvenida_info').html('<h2>Hola, ' + nombre + '!</h2>' + 
 						'<h3>Te recordamos cómo funciona la aplicación:</h3>');
 				$('#div_bienvenida_info').show();
-			},
+			},*/
 			// Funcion que consulta con el Servidor la lista de preguntas de seguridad disponibles
 			consultarPreguntas: function(){
 				//alert('Consultando al servidor preguntas...');

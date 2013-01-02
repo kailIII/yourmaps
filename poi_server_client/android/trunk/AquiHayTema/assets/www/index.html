@@ -168,8 +168,7 @@
 			<form id="frmNueva" name="frmNueva">
 				
 				<label for="descripcion_aqui_hay">Introduce un mensaje que describa esta zona:</label>
-				<textarea name="textarea" id="descripcion_aqui_hay">Esta zona es...
-				</textarea>
+				<textarea name="textarea" id="descripcion_aqui_hay" placeholder="Esta zona..."></textarea>
 			
 				<div data-role="fieldcontain" class="ui-hide-label">
 					<a href="#" data-role="button" data-icon="check" data-iconpos="right" data-theme="e">Aqui Hay tema!</a> 
@@ -202,6 +201,11 @@
 			</h2>
 			<div id="descripcion_poi_val" class="field">
 			Descripción del POI
+			</div>
+			<div id="checkins_poi" data-role="fieldcontain" class="ui-hide-label" style="display: none">
+				<h2>Chekins actuales</h2>
+				<ul id='lista_checinks_poi' data-role="listview" data-theme="e">
+				</ul>
 			</div>
 		</div><!-- /content -->
 	
