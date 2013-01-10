@@ -3,6 +3,10 @@
 include_once $_SERVER["DOCUMENT_ROOT"]."php_scripts/exceptions/PoiTableCreationException.php";
 include_once $_SERVER["DOCUMENT_ROOT"]."php_scripts/exceptions/TableCreationException.php";
 
+//include_once $_SERVER["DOCUMENT_ROOT"]."/poiserver/php_scripts/exceptions/PoiTableCreationException.php";
+//include_once $_SERVER["DOCUMENT_ROOT"]."/poiserver/php_scripts/exceptions/TableCreationException.php";
+
+
 class Poiservicesmodel extends CI_Model{
 
 	public function __construct()
@@ -40,8 +44,9 @@ class Poiservicesmodel extends CI_Model{
 	public function createUserTable(){
 		$sql = "CREATE TABLE `users` (`id` INT(10) NULL AUTO_INCREMENT,	".
 			"`alias` TINYTEXT NULL DEFAULT NULL, `password` TINYTEXT NULL DEFAULT NULL, ".
-			"`security_answer` TINYTEXT NULL DEFAULT NULL, 	`security_question_code` INT NULL ".	
-			"UNIQUE INDEX `alias` (`alias`(250)), PRIMARY KEY (`id`)) COLLATE='utf8_general_ci' ENGINE=MyISAM ROW_FORMAT=DEFAULT;";
+			"`security_answer` TINYTEXT NULL DEFAULT NULL, 	`security_question_code` INT NULL ".
+			"`poi_service_fk` INT(10) NOT NULL,".	
+			"UNIQUE INDEX `alias` (`alias`(300)), PRIMARY KEY (`id`,`poi_service_fk')) COLLATE='utf8_general_ci' ENGINE=MyISAM ROW_FORMAT=DEFAULT;";
 
 		if(! $this->db->query($sql)){
 			throw new TableCreationException("No se ha podido crear la tabla 'users'");
@@ -105,11 +110,12 @@ class Poiservicesmodel extends CI_Model{
 	 * @param string $password
 	 * @param string $securityAnswer
 	 */
-	public function insertUser($alias, $password, $securityAnswer, $securityQuestionCode){
-		if($this->existUser($alias))
+	public function insertUser($layer_id, $alias, $password, $securityAnswer, $securityQuestionCode){
+		if($this->existUser($layer_id, $alias))
 			return false;
 				
 		$data = array(
+			'poi_service_fk' => $layer_id,
    			'alias' => $alias,
    			'password' => $password,
    			'security_question_code' => $securityQuestionCode,
@@ -118,18 +124,57 @@ class Poiservicesmodel extends CI_Model{
 
 		return $this->db->insert('users', $data);
 	}
+	
+	
+	/**
+	 * updates all user params, except 'alias'
+	 * 
+	 * question: is enought old password, or we must ask security questions
+	 * 
+	 * */
+	public function updateuser($layer_id,  $alias, $password, $newPassword = '', $securityAnswer, $securityQuestionCode){
+		$data = array(
+               'security_question_code' => $securityQuestionCode,
+               'security_answer' => $securityAnswer
+        );
+        
+        if($newPassword != '')
+        {
+        	$data['password'] = $newPassword;
+        }
+
+		$this->db->where('poi_service_fk', $layer_id);
+		$this->db->where('password', $password);
+		
+		
+		$this->db->update('users', $data); 
+		
+		return $this->db->affected_rows() > 0;
+	}
 	 
 	 
 	 
-	public function existUser($alias){
+	public function existUser($layer_id, $alias){
 		$this->db->select('id');
 		$this->db->where("alias", $alias);
+		$this->db->where("poi_service_fk", $layer_id);
 		$query = $this->db->get("users");
 		return $query->num_rows() > 0;
 	}
+	
+	
+	
+	public function createorupdateuser($layer_id, $alias, $password, $securityAnswer, $securityQuestionCode, $newPassword = '' ){
+		if($this->existUser($layer_id, $alias)){
+			return $this->updateuser($layer_id, $alias, $password, $newPassword, $securityAnswer, $securityQuestionCode);
+		}else{
+			return $this->insertUser($layer_id, $alias, $password, $securityAnswer, $securityQuestionCode);
+		}
+	}
 	 
-	public function login($alias, $password){
+	public function login($layer_id, $alias, $password){
 		$this->db->select('id');
+		$this->db->where("poi_service_fk", $layer_id);
 		$this->db->where("alias", $alias);
 		$this->db->where("password", $password);
 		$query = $this->db->get("users");
@@ -137,10 +182,11 @@ class Poiservicesmodel extends CI_Model{
 	}
 	 
 	 
-	public function resetPassword($securityQuestionCode, $securityAnswer, $newPassword){
+	public function resetPassword($alias, $securityQuestionCode, $securityAnswer, $newPassword){
 		$data = array(
                'password' => $newPassword,
 		);
+		$this->db->where('alias',$alias);
 		$this->db->where('security_question_code', $securityQuestionCode);
 		$this->db->where('security_answer', $securityAnswer);
 		$this->db->update('users', $data);
@@ -152,8 +198,6 @@ class Poiservicesmodel extends CI_Model{
 /*
  Security Questions
  * */
-	
-	
 	
 	public function listSecurityQuestions(){
 		$query = $this->db->get('security_questions');

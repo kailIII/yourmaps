@@ -2,6 +2,10 @@
 include_once $_SERVER["DOCUMENT_ROOT"]."php_scripts/exceptions/PoiTableCreationException.php";
 include_once $_SERVER["DOCUMENT_ROOT"]."php_scripts/kml/KmlReader.php";
 
+
+//include_once $_SERVER["DOCUMENT_ROOT"]."/poiserver/php_scripts/exceptions/PoiTableCreationException.php";
+//include_once $_SERVER["DOCUMENT_ROOT"]."/poiserver/php_scripts/kml/KmlReader.php";
+
 class Poimodel extends CI_Model {
 
 	public function __construct(){
@@ -49,8 +53,9 @@ class Poimodel extends CI_Model {
 
 
 	public function insertPoi($tableName, $geometryColumn, $poiName,
-	$poiDescription, $wktGeometry,
-	$poiSource, $urlSource, $photoUrl = null, $webUrl = null ){
+									$poiDescription, $wktGeometry,
+									$poiSource, $urlSource, 
+									$photoUrl = null, $webUrl = null ){
 			
 			
 		if(! $this->existPoi($tableName, $geometryColumn, $poiName, $wktGeometry)){
@@ -99,8 +104,10 @@ class Poimodel extends CI_Model {
 		$this->db->where("layer_id", $layer_id);
 		$this->db->where("poi_id", $poi_id);
 
-		if($checkTime == "recent"){
-			$this->db->where('check_time <= DATE_ADD(NOW(),INTERVAL 7 DAYS )');
+		if($checkTime == "last_week"){
+			$this->db->where('check_time >= DATE_ADD(NOW(),INTERVAL -1 WEEK )');
+		}else if($checkTime == "last_hours"){
+			$this->db->where('check_time >= DATE_ADD(NOW(),INTERVAL -3 HOUR )');
 		}
 
 		$query = $this->db->get("CHECKINS");
@@ -111,9 +118,10 @@ class Poimodel extends CI_Model {
 		return false;
 	}
 
-	public function getCheckinsByUser($user_alias, $checkTime = "all"){
+	public function getCheckinsByUser($user_alias, $layer_id, $checkTime = "all"){
 
 		$this->db->where("user_alias", $user_alias);
+		$this->db->where("layer_id", $layer_id);
 
 		if($checkTime == "recent"){
 			$this->db->where('check_time <= DATE_ADD(NOW(),INTERVAL 7 DAYS )');
@@ -179,6 +187,7 @@ class Poimodel extends CI_Model {
 		$sql = "select $tableName.id, $tableName.name, $tableName.description, ".
 				 "X($tableName.geom) 'long', Y($tableName.geom) lat, ".
 				 " $tableName.photo_url, $tableName.web_url, ".
+				 "(6371392.9 * ACOS(COS(RADIANS($y)) * COS(RADIANS(y(geom))) * COS(RADIANS(x(geom)) - RADIANS($x)) + SIN(RADIANS($y)) * SIN(RADIANS(y(geom))))) dist ,".
 				 "count(CHECKINS.check_time) num_checkins from $tableName LEFT JOIN CHECKINS ".
 				 "on $tableName.id = CHECKINS.poi_id  ".
 				 "where MBRIntersects(GeomFromText('$wktGeom'),$geometryColumn) ".
