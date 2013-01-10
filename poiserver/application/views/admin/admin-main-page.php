@@ -26,7 +26,6 @@
 		 </div>
 	 </div>
 	 <div class="row-fluid"/>
-	  <div class="row-fluid">
 		 <div class="span1">
 			 <button class="btn btn-large btn-primary" type="button">Checkins</button>
 		 </div>
