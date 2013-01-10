@@ -160,10 +160,10 @@ class PoiServer extends CI_Controller {
 		}
 	}
 
-	public function getcheckinsbypoi($layer_id, $poi_id){;
+	public function getcheckinsbypoi($layer_id, $poi_id, $order = 'all'){;
 	try{
 		$this->load->model("poimodel");
-		$checkins = $this->poimodel->getCheckinsByPoi($layer_id, $poi_id);
+		$checkins = $this->poimodel->getCheckinsByPoi($layer_id, $poi_id, $order);
 
 		if($checkins){
 			$data = array("checkins" => $checkins);
@@ -179,17 +179,17 @@ class PoiServer extends CI_Controller {
 	}
 	}
 
-	public function getcheckinsbyuser($alias){
+	public function getcheckinsbyuser($layer_id, $alias){
 		try{
 			$this->load->model("poimodel");
 			$alias = urldecode($alias);
-			$checkins = $this->poimodel->getCheckinsByUser($alias);
+			$checkins = $this->poimodel->getCheckinsByUser($alias, $layer_id );
 
 			if($checkins){
 				$data = array("checkins" => $checkins);
 				$this->load->view("checkins_list", $data);
 			}else{
-				$data = array("message" => "No se han podido recuperar los checkins de ".$alias." ".$this->db->_error_message());
+				$data = array("message" => "No se han podido recuperar los checkins de ".$alias." ".$layer_id." ".$this->db->_error_message());
 				$this->load->view("api_errors", $data );
 			}
 
@@ -334,7 +334,7 @@ class PoiServer extends CI_Controller {
 		}
 	}
 
-	public function insertuser($securityQuestionCode, $alias, $password, $securityAnswer){
+	public function insertuser($layer_id, $securityQuestionCode, $alias, $password, $securityAnswer){
 		try{
 			$this->load->model("poiservicesmodel");
 
@@ -344,35 +344,101 @@ class PoiServer extends CI_Controller {
 			$securityAnswer = urldecode($securityAnswer);
 
 
-			$ok = $this->poiservicesmodel->insertUser($alias, $password, $securityAnswer, $securityQuestionCode);
+			$ok = $this->poiservicesmodel->insertUser($layer_id, $alias, $password, $securityAnswer, $securityQuestionCode);
 
 			if($ok){
 				$data = array("message" => "ok");
 				$this->load->view("api_messages", array("message"=>$data));
 			}else{
-				$data = array("message" => "No se ha conseguido añadir el usuario ". $alias . " ". $this->db->_error_message());
+				$data = array("message" => "No se ha conseguido añadir el usuario ". $alias . " para la capa ".$layer_id." ". $this->db->_error_message());
 				$this->load->view("api_errors", array("message"=>$data) );
 			}
 		}catch(Exception $e){
-			$data = array("message" => "Se ha producido una excepción al añadir el usuario ".$alias. " ".$this->db->_error_message());
+			$data = array("message" => "Se ha producido una excepción al añadir el usuario ".$alias. " para la capa ".$layer_id." ".$this->db->_error_message());
 			$this->load->view("api_errors", array("message"=>$data) );
 		}
 	}
+	
+	/*
+	FIXME  Hay que analizar si hacer que este sea el unico metodo publico del api, y eliminar los otros 2:
+	 insertuser y updateuser
+	 * */
+	
+	public function createorupdateuser($layer_id,  $alias, $password, $securityAnswer, $securityQuestionCode, $newPassword = ''){
+		try{
+			$this->load->model("poiservicesmodel");
 
-	public function userexist($alias){
+
+			$alias = urldecode($alias);
+			$password = urldecode($password);
+			if($newPassword != ''){
+				$newPassword = urldecode($newPassword);
+			}
+			$securityAnswer = urldecode($securityAnswer);
+
+
+			$ok = $this->poiservicesmodel->createorupdateuser($layer_id, $alias, $password, $securityAnswer, $securityQuestionCode, $newPassword );
+
+			if($ok){
+				$data = array("message" => "ok");
+				$this->load->view("api_messages", array("message"=>$data));
+			}else{
+				$data = array("message" => "No se ha conseguido modificar el usuario ". $alias . " para la capa ".$layer_id." ". $this->db->_error_message());
+				$this->load->view("api_errors", array("message"=>$data) );
+			}
+		}catch(Exception $e){
+			$data = array("message" => "Se ha producido una excepción al modificar el usuario ".$alias. " para la capa ".$layer_id." ".$this->db->_error_message());
+			$this->load->view("api_errors", array("message"=>$data) );
+		}
+	
+	}
+	
+	
+	public function updateuser($layer_id,  $alias, $password, $newPassword = '', $securityAnswer, $securityQuestionCode){
+		try{
+			$this->load->model("poiservicesmodel");
+
+
+			$alias = urldecode($alias);
+			$password = urldecode($password);
+			if($newPassword != ''){
+				$newPassword = urldecode($newPassword);
+			}
+			$securityAnswer = urldecode($securityAnswer);
+
+
+			$ok = $this->poiservicesmodel->updateuser($layer_id,  $alias, 
+													$password, $newPassword,
+													 $securityAnswer, $securityQuestionCode);
+
+			if($ok){
+				$data = array("message" => "ok");
+				$this->load->view("api_messages", array("message"=>$data));
+			}else{
+				$data = array("message" => "No se ha conseguido modificar el usuario ". $alias . " para la capa ".$layer_id." ". $this->db->_error_message());
+				$this->load->view("api_errors", array("message"=>$data) );
+			}
+		}catch(Exception $e){
+			$data = array("message" => "Se ha producido una excepción al modificar el usuario ".$alias. " para la capa ".$layer_id." ".$this->db->_error_message());
+			$this->load->view("api_errors", array("message"=>$data) );
+		}
+	
+	
+	}
+	public function userexist($layer_id, $alias){
 		try{
 			$this->load->model("poiservicesmodel");
 
 
 			$alias = urldecode($alias);
 
-			$exist = $this->poiservicesmodel->existUser($alias);
+			$exist = $this->poiservicesmodel->existUser($layer_id, $alias);
 
 			$data = array("message" => $exist);
 			$this->load->view("api_messages", array("message"=>$data));
 
 		}catch(Exception $e){
-			$data = array("message" => "Se ha producido una excepción al verificar el usuario ".$alias. " ".$this->db->_error_message());
+			$data = array("message" => "Se ha producido una excepción al verificar el usuario ".$alias. " para la capa ".$layer_id." ".$this->db->_error_message());
 			$this->load->view("api_errors", array("message"=>$data) );
 		}
 	}
