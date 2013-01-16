@@ -39,11 +39,14 @@ class Poimodel extends CI_Model {
 
 
 
-	public function existPoi($tableName, $geometryColumn, $poiName,
-	$wktGeometry){
+	public function existPoi($tableName, $geometryColumn, $poiName,$wktGeometry){
 			
 		$this->db->select("id");
-		$this->db->where("name = '$poiName' AND MBRIntersects(GeomFromText('$wktGeometry'),$geometryColumn)");
+
+		$escapedName = $this->db->escape($poiName);
+		$this->db->where("name", "$escapedName");
+
+		$this->db->where("MBRIntersects(GeomFromText('$wktGeometry'),$geometryColumn)");
 		$query = $this->db->get($tableName);
 		if ($query->num_rows() > 0){
 			return true;
@@ -53,30 +56,31 @@ class Poimodel extends CI_Model {
 
 
 	public function insertPoi($tableName, $geometryColumn, $poiName,
-									$poiDescription, $wktGeometry,
-									$poiSource, $urlSource, 
-									$photoUrl = null, $webUrl = null ){
+	$poiDescription, $wktGeometry,
+	$poiSource, $urlSource,
+	$photoUrl = null, $webUrl = null ){
 			
 			
 		if(! $this->existPoi($tableName, $geometryColumn, $poiName, $wktGeometry)){
 			//FIXME no es mejor llamar addslashes en lugar de escape_str ???
 			$sPoiName = $this->db->escape_str($poiName, "utf-8");
-			$sPoiDescription = $this->db->escape_str($poiDescription, "utf-8");
-
-			$this->db->set('name', "$sPoiName");
-			$this->db->set('description', "$sPoiDescription");
+			$poiDescription = $poiDescription . "";//this is a trick for a problem with codeigniter escaping
+				
+				
+			$this->db->set('name', $sPoiName);
+			$this->db->set('description', $poiDescription);
 			$this->db->set($geometryColumn, 'GEOMFROMTEXT("'.$wktGeometry.'")',false);//false tells dont scape strings
 			$this->db->set('source', "$poiSource");
 			$this->db->set('url_source',"$urlSource");
 			if($photoUrl != null)
-				$this->db->set('photo_url', "$photoUrl");
+			$this->db->set('photo_url', "$photoUrl");
 
 			if($webUrl != null)
 			$this->db->set('web_url',"$webUrl");
 
 			$this->db->insert($tableName);
-				
-				
+
+
 			$lastId = $this->db->insert_id();
 
 			return $lastId;
@@ -85,7 +89,19 @@ class Poimodel extends CI_Model {
 	}
 
 
-	public function checkin($layer_id, $poi_id, $user_alias, $checkinDescription ){
+	/**
+	 *
+	 * Do a checking for $poi_id poi of the given $layer_id
+	 * for the user $user_alias
+	 *
+	 *
+	 * @param unknown_type $checkin_table_name
+	 * @param unknown_type $layer_id
+	 * @param unknown_type $poi_id
+	 * @param unknown_type $user_alias
+	 * @param unknown_type $checkinDescription
+	 */
+	public function checkin($checkin_table_name, $layer_id, $poi_id, $user_alias, $checkinDescription ){
 
 		$time = date("Y-m-d H:i:s");
 			
@@ -97,10 +113,10 @@ class Poimodel extends CI_Model {
 			'description' => $checkinDescription
 		);
 
-		return $this->db->insert('CHECKINS', $data);
+		return $this->db->insert("$checkin_table_name", $data);
 	}
 
-	public function getCheckinsByPoi($layer_id, $poi_id, $checkTime = "all"){
+	public function getCheckinsByPoi($checkin_table_name, $layer_id, $poi_id, $checkTime = "all"){
 		$this->db->where("layer_id", $layer_id);
 		$this->db->where("poi_id", $poi_id);
 
@@ -110,7 +126,7 @@ class Poimodel extends CI_Model {
 			$this->db->where('check_time >= DATE_ADD(NOW(),INTERVAL -3 HOUR )');
 		}
 
-		$query = $this->db->get("CHECKINS");
+		$query = $this->db->get("$checkin_table_name");
 
 		if ($query->num_rows() > 0){
 			return $query->result();
@@ -118,7 +134,7 @@ class Poimodel extends CI_Model {
 		return false;
 	}
 
-	public function getCheckinsByUser($user_alias, $layer_id, $checkTime = "all"){
+	public function getCheckinsByUser($checkin_table_name, $user_alias, $layer_id, $checkTime = "all"){
 
 		$this->db->where("user_alias", $user_alias);
 		$this->db->where("layer_id", $layer_id);
@@ -127,10 +143,75 @@ class Poimodel extends CI_Model {
 			$this->db->where('check_time <= DATE_ADD(NOW(),INTERVAL 7 DAYS )');
 		}
 
-		$query = $this->db->get("CHECKINS");
+		$query = $this->db->get("$checkin_table_name");
 
 		if ($query->num_rows() > 0){
 			return $query->result();
+		}
+		return false;
+	}
+
+	public function sendchatmessage($chatTableName, $geometryColumn, $layer_id, $alias, $chat_msg, $wktGeometry){
+		$time = date("Y-m-d H:i:s");
+
+		$this->db->set("layer_id",$layer_id);
+		$this->db->set($geometryColumn, 'GEOMFROMTEXT("'.$wktGeometry.'")',false);//false tells dont scape strings
+		$this->db->set("check_time", $time);
+		$this->db->set("user_alias", $alias);
+		$this->db->set("text_msg", $chat_msg);
+
+		return $this->db->insert("$chatTableName");
+	}
+
+
+	public function getChatsByGeo($tableName, $geometryColumn, $x, $y, $radius = 0.1){
+
+		$wktGeom = null;
+		if($radius > 0){
+			$wktGeom = "POLYGON ((".($x - $radius)." ".($y - $radius).", ".($x + $radius)." ".($y -$radius).", ".($x + $radius)." ".($y + $radius).", ".($x - $radius)." ".($y + $radius).", ".($x - $radius)." ".($y -$radius)." ))";
+		}else{
+			$wktGeom = "POINT($x $y)";
+		}
+
+		$sql = "select $tableName.id, $tableName.layer_id, $tableName.user_alias, ".
+				 "X($tableName.$geometryColumn) 'long', Y($tableName.$geometryColumn) lat, ".
+				 " $tableName.check_time, $tableName.text_msg, ".
+				 "(6371392.9 * ACOS(COS(RADIANS($y)) * COS(RADIANS(y($geometryColumn))) * COS(RADIANS(x($geometryColumn)) - RADIANS($x)) + SIN(RADIANS($y)) * SIN(RADIANS(y($geometryColumn))))) dist ".
+				 "from $tableName ".
+				 "where MBRIntersects(GeomFromText('$wktGeom'),$geometryColumn) ".
+				 "order by check_time desc";
+
+		$query = $this->db->query($sql);
+		if ($query->num_rows() > 0){
+			return $query->result_array();
+		}
+		return false;
+	}
+
+	public function getAllChats($tableName, $geometryColumn, $x, $y){
+		$sql = "select $tableName.id, $tableName.layer_id, $tableName.user_alias, ".
+				 "X($tableName.$geometryColumn) 'long', Y($tableName.$geometryColumn) lat, ".
+				 " $tableName.check_time, $tableName.text_msg, ".
+				 "(6371392.9 * ACOS(COS(RADIANS($y)) * COS(RADIANS(y($geometryColumn))) * COS(RADIANS(x($geometryColumn)) - RADIANS($x)) + SIN(RADIANS($y)) * SIN(RADIANS(y($geometryColumn))))) dist ".
+				 "from $tableName ".
+				 "order by check_time desc";
+
+		$query = $this->db->query($sql);
+		if ($query->num_rows() > 0){
+			return $query->result_array();
+		}
+		return false;
+	}
+	
+	public function getChatsByUser($tableName, $userAlias){
+		$sql = "select $tableName.id, $tableName.layer_id, $tableName.user_alias, ".
+				 " $tableName.check_time, $tableName.text_msg ".
+				 "from $tableName ".
+				 "where $tableName.user_alias = $userAlias order by check_time desc";
+
+		$query = $this->db->query($sql);
+		if ($query->num_rows() > 0){
+			return $query->result_array();
 		}
 		return false;
 	}
@@ -139,9 +220,10 @@ class Poimodel extends CI_Model {
 
 	public function addPoisFromManyKmls($tableName, $geometryColumn, $kmlList, $sourceDescription = ""){
 		$mapsArray = explode("\n",$kmlList);
-			
+
+
 		$numKml = sizeof($mapsArray);
-			
+
 		for($i = 0; $i < $numKml; $i++){//meter try catch por si el kml está caido
 			$this->addPoisFromKml($tableName, $geometryColumn, $mapsArray[$i], $mapsArray[$i]);
 		}
@@ -158,7 +240,6 @@ class Poimodel extends CI_Model {
 		$numPlaceMarks = sizeof($placeMarks);
 			
 		for($i = 0; $i < $numPlaceMarks; $i++){
-
 			$kmlPm = $placeMarks[$i];
 			$newpoi = $this->insertPoi($tableName, $geometryColumn, $kmlPm->getName(),
 			$kmlPm->getDescription(), $kmlPm->getWktText(),
@@ -175,7 +256,7 @@ class Poimodel extends CI_Model {
 	 * @param double $y
 	 * @param double $radius Search radius in latitude degreees (1 degree = 111,12 km, 0.1 = 11,11 km)
 	 */
-	public function searchByGeo($tableName, $geometryColumn, $x, $y, $radius = 0.1){
+	public function searchByGeo($tableName, $geometryColumn, $x, $y, $order = 'num_checkins', $radius = 0.1){
 
 		$wktGeom = null;
 		if($radius > 0){
@@ -183,16 +264,25 @@ class Poimodel extends CI_Model {
 		}else{
 			$wktGeom = "POINT($x $y)";
 		}
-		
+
+		$orderSql = null;
+
+		if($order == 'num_checkins'){
+			$orderSql = ' order by num_checkins desc';
+		}else if($order == 'distance'){
+			$orderSql = ' order by dist asc';
+		}
+
+
 		$sql = "select $tableName.id, $tableName.name, $tableName.description, ".
-				 "X($tableName.geom) 'long', Y($tableName.geom) lat, ".
+				 "X($tableName.$geometryColumn) 'long', Y($tableName.$geometryColumn) lat, ".
 				 " $tableName.photo_url, $tableName.web_url, ".
-				 "(6371392.9 * ACOS(COS(RADIANS($y)) * COS(RADIANS(y(geom))) * COS(RADIANS(x(geom)) - RADIANS($x)) + SIN(RADIANS($y)) * SIN(RADIANS(y(geom))))) dist ,".
+				 "(6371392.9 * ACOS(COS(RADIANS($y)) * COS(RADIANS(y($geometryColumn))) * COS(RADIANS(x($geometryColumn)) - RADIANS($x)) + SIN(RADIANS($y)) * SIN(RADIANS(y($geometryColumn))))) dist ,".
 				 "count(CHECKINS.check_time) num_checkins from $tableName LEFT JOIN CHECKINS ".
 				 "on $tableName.id = CHECKINS.poi_id  ".
 				 "where MBRIntersects(GeomFromText('$wktGeom'),$geometryColumn) ".
-				 "group by $tableName.id order by num_checkins desc";
-		
+				 "group by $tableName.id" . $orderSql;
+
 		$query = $this->db->query($sql);
 		if ($query->num_rows() > 0){
 			return $query->result_array();
@@ -202,8 +292,8 @@ class Poimodel extends CI_Model {
 
 
 	public function searchByText($tableName, $searchText){
-//		$this->db->select('id, name, description, x(geom) \'long\', y(geom) \'lat\', astext(geom) \'geometry\', source, url_source, photo_url, WEB_URL');
-//		$this->db->where("match(name,description) against ('$searchText' in natural language mode)");
+		//		$this->db->select('id, name, description, x(geom) \'long\', y(geom) \'lat\', astext(geom) \'geometry\', source, url_source, photo_url, WEB_URL');
+		//		$this->db->where("match(name,description) against ('$searchText' in natural language mode)");
 		$matchText = '"'.$searchText.'"';
 		$sql = "select $tableName.id, $tableName.name, $tableName.description, ".
 				 "X($tableName.geom) 'long', Y($tableName.geom) lat,".
@@ -212,10 +302,7 @@ class Poimodel extends CI_Model {
 				 "on $tableName.id = CHECKINS.poi_id  ".
 				 "where match(name,$tableName.description) against ( '$matchText' in boolean mode) ".
 				 "group by $tableName.id order by num_checkins desc";
-		
-		
-		
-		
+
 		$query = $this->db->query($sql);
 		if ($query->num_rows() > 0){
 			return $query->result_array();
