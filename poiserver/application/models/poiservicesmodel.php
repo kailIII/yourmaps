@@ -39,6 +39,68 @@ class Poiservicesmodel extends CI_Model{
 		}
 		return true;
 	}
+	
+	//TODO
+	public function createLayerTables($table_name, $geometryColumn = 'geom'){
+		
+		//pois
+		$sql = "CREATE TABLE `".$table_name."` (".
+				"`id` INT(10) NOT NULL AUTO_INCREMENT,".
+				"`name` TEXT NULL,".
+				"`description` LONGTEXT NULL,".
+				"`".$geometryColumn."` GEOMETRY NOT NULL,".
+				"`source` TEXT  NULL COMMENT 'Data source (looking for maps, added by user, etc)',".
+				"`url_source` TEXT NULL COMMENT 'URL of the data source',".
+				"`photo_url` TEXT NULL,".
+				"`WEB_URL` TEXT NULL,".
+				"PRIMARY KEY (`id`), ".
+				"FULLTEXT INDEX `name_description` (`name`, `description`) 	) ".
+				"COLLATE='utf8_general_ci'".
+				"ENGINE=MyISAM ".
+				"ROW_FORMAT=DEFAULT ".
+				"AUTO_INCREMENT=0 ";
+		if(! $this->db->query($sql)){
+			throw new PoiTableCreationException("No se ha podido crear la tabla $table_name");
+		}
+		
+		//checkins
+		$checkinSql = 'CREATE TABLE `'.$table_name.'_CHECKINS` ('.
+					'`id` INT(10) NOT NULL AUTO_INCREMENT,'.
+					'`layer_id` INT(10) NOT NULL,'.
+					'`poi_id` INT(10) NOT NULL,'.
+					'`check_time` DATETIME NOT NULL,'.
+					'`user_alias` TEXT NOT NULL,'.
+					'`description` TEXT NOT NULL,'.
+					'PRIMARY KEY (`id`)) '.
+					'COLLATE=\'utf8_general_ci\' '.
+					'ENGINE=MyISAM '.
+					'ROW_FORMAT=DEFAULT AUTO_INCREMENT=0';
+		if(! $this->db->query($checkinSql)){
+			throw new PoiTableCreationException("No se ha podido crear la tabla $table_name"."_CHECKINS");
+		}
+		
+		//chat
+		$chatSql = 'CREATE TABLE `'.$table_name.'_CHAT` ('.
+					'`id` INT(10) NOT NULL AUTO_INCREMENT,'.
+					'`layer_id` INT(10) NOT NULL,'.
+					'`check_time` DATETIME NOT NULL,'.
+					'`geom` GEOMETRY NOT NULL,'.
+					'`user_alias` TEXT NOT NULL,'.
+					'`text_msg` TEXT NOT NULL,'.
+					'PRIMARY KEY (`id`) ) '.
+					'COLLATE=\'utf8_general_ci\''.
+					'ENGINE=MyISAM '.
+					'ROW_FORMAT=DEFAULT';
+		
+		if(! $this->db->query($chatSql)){
+			throw new PoiTableCreationException("No se ha podido crear la tabla $table_name"."_CHECKINS");
+		}
+		
+		
+		
+		
+		return true;
+	}
 	 
 	 
 	public function createUserTable(){
@@ -71,10 +133,13 @@ class Poiservicesmodel extends CI_Model{
 	 * */
 	 
 	 
-	public function inserPoiService($tableName, $geometryColumnName, $serviceName = ''){
+	public function inserPoiService($tableName, $geometryColumnName, 
+		 $chat_table_name, $checkin_table_name, $serviceName = ''){
 		$data = array(
    			'table_name' => $tableName,
    			'geometry_column_name' => $geometryColumnName,
+			'checkin_table_name' => $checkin_table_name,
+			'chat_table_name' => $chat_table_name,
    			'service_name' => $serviceName
 		);
 
