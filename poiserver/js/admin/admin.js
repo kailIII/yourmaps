@@ -1,5 +1,7 @@
 function sendKmls(urlBase){
 		var servers = $("#service_to_index").val();
+		var arrayServers = servers.split("\n");
+		var jsonServers = JSON.stringify(arrayServers);
 		var idPoiService = $("#poi_layer").val();
 		
 		
@@ -7,13 +9,11 @@ function sendKmls(urlBase){
 		
 		var url = urlBase + "index.php/poiserver/loadManyKmls/"+idPoiService;
 		
-		alert("url="+url);
-
 		  //first we sent the request with maps
 		 $.ajax({
 			  type: "POST",
 			  url: url,
-			  data: "kmls="+encodeURIComponent(servers),
+			  data: "kmls="+encodeURIComponent(jsonServers),
 			  success: function( data ) {
 						alert("kmls enviados con exito"+data.toString());
 						     
