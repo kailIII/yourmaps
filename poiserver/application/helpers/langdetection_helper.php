@@ -3,14 +3,12 @@
 if ( ! function_exists('getLang'))
 {
     function getLang(){
-    	//after that, we try to detect browser language
+    	//we try to detect browser language
     	
         if (!empty( $_SERVER['HTTP_ACCEPT_LANGUAGE'] )){
         	// explode languages into array
         	$accept_langs = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
-
-       
-
+        	
         	// Check them all, until we find a match
         	foreach ($accept_langs as $lang)
         	{
