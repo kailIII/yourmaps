@@ -64,7 +64,7 @@ class Poiservicesmodel extends CI_Model{
 		}
 		
 		//checkins
-		$checkinSql = 'CREATE TABLE `'.$table_name.'_CHECKINS` ('.
+		$checkinSql = 'CREATE TABLE `'.$table_name.'_CHECKIN` ('.
 					'`id` INT(10) NOT NULL AUTO_INCREMENT,'.
 					'`layer_id` INT(10) NOT NULL,'.
 					'`poi_id` INT(10) NOT NULL,'.
