@@ -9,7 +9,7 @@ class PoiServer extends CI_Controller {
 	}
 
 
-	public function getpoisbyposition($layer_id, $x, $y, $radius = 1000){
+	public function getpoisbyposition($layer_id, $x, $y, $order = 'num_checkins', $radius = 1000){
 		$this->load->model("poimodel");
 		$this->load->model("poiservicesmodel");
 
@@ -24,7 +24,7 @@ class PoiServer extends CI_Controller {
 
 			$radiusDegree = ($radius / 1857) * 0.016666667;
 
-			$pois = $this->poimodel->searchByGeo($tableName, $geometryColumn, $x, $y, $radiusDegree );
+			$pois = $this->poimodel->searchByGeo($tableName, $geometryColumn, $x, $y, $order, $radiusDegree );
 
 			$data = array("pois" => $pois);
 
@@ -42,7 +42,7 @@ class PoiServer extends CI_Controller {
 	public function getpoisbytext($layer_id, $search_text){
 		$this->load->model("poimodel");
 		$this->load->model("poiservicesmodel");
-		
+
 		$search_text = urldecode($search_text);
 
 		$data = $this->poiservicesmodel->getPoiService($layer_id);
@@ -50,7 +50,8 @@ class PoiServer extends CI_Controller {
 		if(sizeof($data) > 0){
 
 			$tableName = $data["table_name"];
-			$pois = $this->poimodel->searchbytext($tableName, $search_text);
+			$geometryColumn = $data["geometry_column_name"];
+			$pois = $this->poimodel->searchbytext($tableName, $geometryColumn, $search_text);
 
 			$data = array("pois" => $pois);
 
@@ -76,7 +77,7 @@ class PoiServer extends CI_Controller {
 		if (get_magic_quotes_gpc()) {
 			$json_string = stripslashes($json_string);
 		}
-		
+
 		$info = json_decode($json_string);
 		//		$decoded_json = $json->decode($json_string,true);
 		$solution = array(
@@ -87,37 +88,46 @@ class PoiServer extends CI_Controller {
 	}
 
 
-	public function addpoi($layer_id, $x, $y, $title, $description){
+	public function addpoi($layer_id, $alias, $password, $x, $y, $title, $description){
 		try{
 			$this->load->model("poimodel");
 			$this->load->model("poiservicesmodel");
+				
+			$alias = urldecode($alias);
+			$password = urldecode($password);
 
-			$data = $this->poiservicesmodel->getPoiService($layer_id);
+			if($this->poiservicesmodel->login($layer_id, $alias, $password)){
 
-			if(sizeof($data) > 0){
+				$data = $this->poiservicesmodel->getPoiService($layer_id);
 
-				$tableName = $data["table_name"];
-				$geometryColumn = $data["geometry_column_name"];
+				if(sizeof($data) > 0){
 
-				$title = urldecode($title);
-				$description = urldecode($description);
+					$tableName = $data["table_name"];
+					$geometryColumn = $data["geometry_column_name"];
 
-				$wktText = 'POINT('.$x.' '. $y.')';
+					$title = urldecode($title);
+					$description = urldecode($description);
 
-				$newpoi_id = $this->poimodel->insertPoi($tableName, $geometryColumn, $title,
+					$wktText = 'POINT('.$x.' '. $y.')';
+
+					$newpoi_id = $this->poimodel->insertPoi($tableName, $geometryColumn, $title,
 					$description, $wktText, "", "");
 
-				if($newpoi_id){
-					$data = array("message" => "ok",
-								  "newpoi_id" => $newpoi_id);
-					$this->load->view("api_messages", array("message"=> $data));
-				}else{
-					$data = array("message" => "No se ha insertar el POI ".$title." ".$description." " .$this->db->_error_message());
-					$this->load->view("api_errors", array("message" => $data ));
-				}
+					if($newpoi_id){
+						$data = array("message" => "ok",
+									  "newpoi_id" => $newpoi_id);
+						$this->load->view("api_messages", array("message"=> $data));
+					}else{
+						$data = array("message" => "No se ha insertar el POI ".$title." ".$description." " .$this->db->_error_message());
+						$this->load->view("api_errors", array("message" => $data ));
+					}
 
+				}else{
+					$message = "No se ha encontrado la capa ".$layer_id;
+					$this->load->view("api_errors", array("message" => $message));
+				}
 			}else{
-				$message = "No se ha encontrado la capa ".$layer_id;
+				$message = "Usuario o password incorrecto";
 				$this->load->view("api_errors", array("message" => $message));
 			}
 
@@ -134,23 +144,79 @@ class PoiServer extends CI_Controller {
 			$this->load->model("poimodel");
 			$this->load->model("poiservicesmodel");
 
-			$description = urldecode($description);
 			$alias = urldecode($user_alias);
 			$password = urldecode($password);
 
-			if($this->poiservicesmodel->login($alias, $password)){
+			if($this->poiservicesmodel->login($layer_id, $alias, $password)){
+
+				$description = urldecode($description);
 					
-				$ok = $this->poimodel->checkin($layer_id, $poi_id, $alias, $description);
-				if($ok){
-					$data = array("message" => "ok");
-					$this->load->view("api_messages", $data);
+					
+				$data = $this->poiservicesmodel->getPoiService($layer_id);
+
+
+				if(sizeof($data) > 0){
+					$checkinTableName = $data['checkin_table_name'];
+						
+						
+					$ok = $this->poimodel->checkin($checkinTableName, $layer_id, $poi_id, $alias, $description);
+					if($ok){
+						$data = array("message" => "ok");
+						$this->load->view("api_messages", $data);
+					}else{
+						$data = array("message" => "No se ha podido hacer checkin " .$this->db->_error_message());
+						$this->load->view("api_errors", $data );
+					}
 				}else{
-					$data = array("message" => "No se ha podido hacer checkin " .$this->db->_error_message());
-					$this->load->view("api_errors", $data );
+					$message = "No se ha encontrado la capa ".$layer_id;
+					$this->load->view("api_errors", array("message" => $message));
 				}
-					
 			}else{
 				$data = array("message" => "No se ha podido hacer checkin porque la password ".$password." no es del usuario ".$alias);
+				$this->load->view("api_errors", $data );
+			}
+
+		}catch(Exception $e){
+			$data = array("message" => "Se ha producido una excepción al hacer el checkin ");
+			$this->load->view("api_errors", $data );
+		}
+	}
+
+
+	public function sendchatmessage($layer_id, $alias, $password, $chat_msg, $x, $y ){
+		try{
+			$this->load->model("poimodel");
+			$this->load->model("poiservicesmodel");
+
+				
+			$alias = urldecode($alias);
+			$password = urldecode($password);
+
+			if($this->poiservicesmodel->login($layer_id, $alias, $password)){
+				$data = $this->poiservicesmodel->getPoiService($layer_id);
+				if(sizeof($data) > 0){
+					$chatTableName = $data['chat_table_name'];
+						
+					$geometryColumnName = $data['geometry_column_name'];
+
+					$chat_msg = urldecode($chat_msg);
+						
+					$wktText = 'POINT('.$x.' '. $y.')';
+						
+					$ok = $this->poimodel->sendchatmessage($chatTableName,$geometryColumnName, $layer_id, $alias, $chat_msg, $wktText);
+					if($ok){
+						$data = array("message" => "ok");
+						$this->load->view("api_messages", $data);
+					}else{
+						$data = array("message" => "No se ha podido enviar el mensaje por: " .$this->db->_error_message());
+						$this->load->view("api_errors", $data );
+					}
+				}else{
+					$message = "No se ha encontrado la capa ".$layer_id;
+					$this->load->view("api_errors", array("message" => $message));
+				}
+			}else{
+				$data = array("message" => "No se ha podido enviar el mensaje de chat porque la password ".$password." no es del usuario ".$alias);
 				$this->load->view("api_errors", $data );
 			}
 
@@ -163,14 +229,25 @@ class PoiServer extends CI_Controller {
 	public function getcheckinsbypoi($layer_id, $poi_id, $order = 'all'){;
 	try{
 		$this->load->model("poimodel");
-		$checkins = $this->poimodel->getCheckinsByPoi($layer_id, $poi_id, $order);
+		$this->load->model("poiservicesmodel");
+			
+		$data = $this->poiservicesmodel->getPoiService($layer_id);
+		if(sizeof($data) > 0){
 
-		if($checkins){
-			$data = array("checkins" => $checkins);
-			$this->load->view("checkins_list", $data);
-		}else{
-			$data = array("message" => "No se han podido recuperar los checkins de ".$layer_id." ".$poi_id ." ".$this->db->_error_message());
-			$this->load->view("api_errors", $data );
+			$checkinTableName = $data['checkin_table_name'];
+
+			$checkins = $this->poimodel->getCheckinsByPoi($checkinTableName, $layer_id, $poi_id, $order);
+
+			if($checkins){
+				$data = array("checkins" => $checkins);
+				$this->load->view("checkins_list", $data);
+			}else{
+				$data = array("message" => "No se han podido recuperar los checkins de ".$layer_id." ".$poi_id ." ".$this->db->_error_message());
+				$this->load->view("api_errors", $data );
+			}
+		} else{
+			$message = "No se ha encontrado la capa ".$layer_id;
+			$this->load->view("api_errors", array("message" => $message));
 		}
 
 	}catch(Exception $e){
@@ -182,15 +259,22 @@ class PoiServer extends CI_Controller {
 	public function getcheckinsbyuser($layer_id, $alias){
 		try{
 			$this->load->model("poimodel");
-			$alias = urldecode($alias);
-			$checkins = $this->poimodel->getCheckinsByUser($alias, $layer_id );
+			$this->load->model("poiservicesmodel");
+				
+			$data = $this->poiservicesmodel->getPoiService($layer_id);
+			if(sizeof($data) > 0){
+				$checkinTableName = $data['checkin_table_name'];
+				$alias = urldecode($alias);
 
-			if($checkins){
-				$data = array("checkins" => $checkins);
-				$this->load->view("checkins_list", $data);
-			}else{
-				$data = array("message" => "No se han podido recuperar los checkins de ".$alias." ".$layer_id." ".$this->db->_error_message());
-				$this->load->view("api_errors", $data );
+				$checkins = $this->poimodel->getCheckinsByUser($checkinTableName, $alias, $layer_id );
+
+				if($checkins){
+					$data = array("checkins" => $checkins);
+					$this->load->view("checkins_list", $data);
+				}else{
+					$data = array("message" => "No se han podido recuperar los checkins de ".$alias." ".$layer_id." ".$this->db->_error_message());
+					$this->load->view("api_errors", $data );
+				}
 			}
 
 		}catch(Exception $e){
@@ -198,6 +282,90 @@ class PoiServer extends CI_Controller {
 			$this->load->view("api_errors", $data );
 		}
 	}
+
+	public function getchatmessagesbyposition($layer_id, $x, $y, $radius = 100000){
+		$this->load->model("poimodel");
+		$this->load->model("poiservicesmodel");
+
+		$data = $this->poiservicesmodel->getPoiService($layer_id);
+			
+		if(sizeof($data) > 0){
+
+			$tableName = $data["chat_table_name"];
+			$geometryColumn = $data["geometry_column_name"];
+
+			//0,016666667 Degrees = 1857 M.
+
+			$radiusDegree = ($radius / 1857) * 0.016666667;
+
+			$pois = $this->poimodel->getChatsByGeo($tableName, $geometryColumn, $x, $y, $radiusDegree );
+
+			$data = array("pois" => $pois);
+
+			$this->load->view("chat_list", $data);
+
+
+		}else{
+			$messageKey = "no_se_ha_encontrado_layer";
+			$this->load->view("api_errors", array("message" => $messageKey));
+		}
+	}
+
+
+	public function getallchatmessages($layer_id, $x, $y){
+		$this->load->model("poimodel");
+		$this->load->model("poiservicesmodel");
+
+		$data = $this->poiservicesmodel->getPoiService($layer_id);
+			
+		if(sizeof($data) > 0){
+
+			$tableName = $data["chat_table_name"];
+			$geometryColumn = $data["geometry_column_name"];
+
+
+
+			$pois = $this->poimodel->getAllChats($tableName, $geometryColumn, $x, $y);
+
+			$data = array("pois" => $pois);
+
+			$this->load->view("chat_list", $data);
+
+
+		}else{
+			$messageKey = "no_se_ha_encontrado_layer";
+			$this->load->view("api_errors", array("message" => $messageKey));
+		}
+
+	}
+
+	public function getchatmessagesbyuser($layer_id, $userAlias){
+		$this->load->model("poimodel");
+		$this->load->model("poiservicesmodel");
+
+		$data = $this->poiservicesmodel->getPoiService($layer_id);
+			
+		if(sizeof($data) > 0){
+
+			$tableName = $data["chat_table_name"];
+			$geometryColumn = $data["geometry_column_name"];
+
+			$pois = $this->poimodel->getChatsByUser($tableName, $userAlias);
+
+			$data = array("pois" => $pois);
+
+			$this->load->view("chat_list", $data);
+
+
+		}else{
+			$messageKey = "no_se_ha_encontrado_layer";
+			$this->load->view("api_errors", array("message" => $messageKey));
+		}
+
+	}
+
+
+
 
 	public function loadManyKmls( $idPoiService, $lang = ""){
 		if($idPoiService != null ) {
@@ -210,9 +378,12 @@ class PoiServer extends CI_Controller {
 				$geometryColumnName = $poiService["geometry_column_name"];
 				$serviceName = $poiService["service_name"];
 					
-				$kmlList = $this->input->post("kmls");
+				$kmlList = urldecode($this->input->post("kmls"));
+				
+				$serverList = json_decode($kmlList);
+
 				try{
-					$this->poimodel->addPoisFromManyKmls($tableName, $geometryColumnName, $kmlList);
+					$this->poimodel->addPoisFromManyKmls($tableName, $geometryColumnName, $serverList);
 				}catch(Exception $e){
 					$data = array("message" => "Se ha producido un error:".$e);
 					$this->load->view("api_errors", $data );
@@ -269,12 +440,24 @@ class PoiServer extends CI_Controller {
 	}
 
 
-	public function createPoiLayer($layerName, $geometryColumn){
+	public function createpoilayer($layerName, $geometryColumn = 'geom', $serviceName = ""){
 		try{
-			$this->load->model("poimodel");
-			if($this->poimodel->createPoiTable($layerName, $geometryColumn)){
-				$this->load->model('poiservicesmodel');
-				if($this->poiservicesmodel->inserPoiService($layerName, $geometryColumn)){
+
+			$this->load->model("poiservicesmodel");
+				
+			$layerName = urldecode($layerName);
+			if($geometryColumn != 'geom'){
+				$geometryColumn = urldecode($geometryColumn);
+			}
+				
+			if($serviceName != ''){
+				$serviceName = urldecode($serviceName);
+			}
+				
+			if($this->poiservicesmodel->createLayerTables($layerName, $geometryColumn)){
+				//				$this->load->model('poiservicesmodel');
+				if($this->poiservicesmodel->inserPoiService($layerName,
+				$geometryColumn, $layerName."_CHAT", $layerName."_CHECKIN",$serviceName)){
 					$data = array("message" => "Creada layer ".$layerName);
 					$this->load->view("api_messages", $data);
 				}else{
@@ -358,12 +541,12 @@ class PoiServer extends CI_Controller {
 			$this->load->view("api_errors", array("message"=>$data) );
 		}
 	}
-	
+
 	/*
 	FIXME  Hay que analizar si hacer que este sea el unico metodo publico del api, y eliminar los otros 2:
-	 insertuser y updateuser
-	 * */
-	
+	insertuser y updateuser
+	* */
+
 	public function createorupdateuser($layer_id,  $alias, $password, $securityAnswer, $securityQuestionCode, $newPassword = ''){
 		try{
 			$this->load->model("poiservicesmodel");
@@ -390,10 +573,10 @@ class PoiServer extends CI_Controller {
 			$data = array("message" => "Se ha producido una excepción al modificar el usuario ".$alias. " para la capa ".$layer_id." ".$this->db->_error_message());
 			$this->load->view("api_errors", array("message"=>$data) );
 		}
-	
+
 	}
-	
-	
+
+
 	public function updateuser($layer_id,  $alias, $password, $newPassword = '', $securityAnswer, $securityQuestionCode){
 		try{
 			$this->load->model("poiservicesmodel");
@@ -407,9 +590,9 @@ class PoiServer extends CI_Controller {
 			$securityAnswer = urldecode($securityAnswer);
 
 
-			$ok = $this->poiservicesmodel->updateuser($layer_id,  $alias, 
-													$password, $newPassword,
-													 $securityAnswer, $securityQuestionCode);
+			$ok = $this->poiservicesmodel->updateuser($layer_id,  $alias,
+			$password, $newPassword,
+			$securityAnswer, $securityQuestionCode);
 
 			if($ok){
 				$data = array("message" => "ok");
@@ -422,8 +605,8 @@ class PoiServer extends CI_Controller {
 			$data = array("message" => "Se ha producido una excepción al modificar el usuario ".$alias. " para la capa ".$layer_id." ".$this->db->_error_message());
 			$this->load->view("api_errors", array("message"=>$data) );
 		}
-	
-	
+
+
 	}
 	public function userexist($layer_id, $alias){
 		try{
@@ -442,15 +625,15 @@ class PoiServer extends CI_Controller {
 			$this->load->view("api_errors", array("message"=>$data) );
 		}
 	}
-	
-	
+
+
 	/**
 	 * Llamadas al API de administración con interfaz de usuario.
-	 * 
+	 *
 	 * Mover a otro Controller
 	 * */
-	
-	
+
+
 	public function admin(){
 		$this->load->model("poiservicesmodel");
 		$poiServices = $this->poiservicesmodel->listPoiServices();
