@@ -1,10 +1,19 @@
 <?php
 
+
 include_once $_SERVER["DOCUMENT_ROOT"]."php_scripts/exceptions/KmlNotRetrievedException.php";
 include_once $_SERVER["DOCUMENT_ROOT"]."php_scripts/exceptions/NotKmlException.php";
 include_once $_SERVER["DOCUMENT_ROOT"]."php_scripts/exceptions/KmlWithoutCoordinatesException.php";
 
 include_once $_SERVER["DOCUMENT_ROOT"]."php_scripts/kml/KmlPlaceMark.php";
+
+/*
+include_once $_SERVER["DOCUMENT_ROOT"]."/poiserver/php_scripts/exceptions/KmlNotRetrievedException.php";
+include_once $_SERVER["DOCUMENT_ROOT"]."/poiserver/php_scripts/exceptions/NotKmlException.php";
+include_once $_SERVER["DOCUMENT_ROOT"]."/poiserver/php_scripts/exceptions/KmlWithoutCoordinatesException.php";
+
+include_once $_SERVER["DOCUMENT_ROOT"]."/poiserver/php_scripts/kml/KmlPlaceMark.php";
+*/
 
 
 class KmlReader {
@@ -26,9 +35,8 @@ class KmlReader {
 			$kmlFile = file_get_contents($url, false, $cxContext);
 		}
 
-		$kmlFile = mb_convert_encoding($kmlFile, 'UTF-8',mb_detect_encoding($kmlFile, 'UTF-8, ISO-8859-1', true));
-
 		if($kmlFile){
+			$kmlFile = mb_convert_encoding($kmlFile, 'UTF-8',mb_detect_encoding($kmlFile, 'UTF-8, ISO-8859-1', true));
 			return $this->loadKmlFromText($kmlFile);
 		}else{
 			throw new KmlNotRetrievedException("No se ha podido acceder al archivo (puede ser un problema de red o de URL incorrecta)");
@@ -70,13 +78,37 @@ class KmlReader {
 					$wktText = "POINT(".$coordinates[0][0]." ".$coordinates[0][1].")";
 						
 				}else if($aPlaceMark->LineString){
-					$wktText = $aPlaceMark->LineString->asXml();
+//					$wktText = $aPlaceMark->LineString->asXml();
+					
+					$coordinates = $this->_extractCoordinates($aPlaceMark->LineString);
+						
+					$wktText = "POINT(".$coordinates[0][0]." ".$coordinates[0][1].")";
 				}else if($aPlaceMark->Polygon){
-					$wktText = $aPlaceMark->Polygon->asXml();
+					//$wktText = $aPlaceMark->Polygon->asXml();
+					$coordinates = $aPlaceMark->Polygon->outerBoundaryIs->LinearRing->coordinates;
+					
+					$coords = explode(" ", trim($coordinates));
+					for($j = 0; $j < sizeof($coords);$j++){
+						if($coords[$j] != "" && $coords[$j] != "\n"){
+							$firstCoord = explode(",", $coords[0]);
+							break;
+						}
+					}
+					
+						
+					$wktText = "POINT(".$firstCoord[0]." ".$firstCoord[1].")";
 				}else if($aPlaceMark->MultiGeometry){
-					$wktText = $aPlaceMark->MultiGeometry->asXml();
+//					$wktText = $aPlaceMark->MultiGeometry->asXml();
+
+					$coordinates = $this->_extractCoordinates($aPlaceMark->MultiGeometry);
+						
+					$wktText = "POINT(".$coordinates[0][0]." ".$coordinates[0][1].")";
 				}else if($aPlaceMark->LineString){
-					$wktText = $aPlaceMark->LineString->asXml();
+//					$wktText = $aPlaceMark->LineString->asXml();
+
+					$coordinates = $this->_extractCoordinates($aPlaceMark->LineString);
+						
+					$wktText = "POINT(".$coordinates[0][0]." ".$coordinates[0][1].")";
 				}
 
 				$newPlaceMark = new KmlPlaceMark($name,
